@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TechFix — Shop</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="shop">
+
+  <div id="topbar-mount"></div>
+  <div id="navbar-mount"></div>
+
+  <section class="section">
+    <div class="container">
+      <div class="page-hero" style="padding-top:0;text-align:left;">
+        <h1 class="page-hero-title">Electronics Store</h1>
+        <p class="page-hero-subtitle">Browse our full range of genuine electronics</p>
+      </div>
+      <div class="input-icon" style="margin-bottom:24px;">
+        <i class="fas fa-search"></i>
+        <input type="text" class="form-control" placeholder="Search products..." id="shopSearch" oninput="filterProducts()"/>
+      </div>
+      <div class="category-tabs" id="categoryTabs"></div>
+      <div class="shop-layout">
+        <div class="shop-sidebar">
+          <div style="margin-bottom:24px;">
+            <div class="sidebar-title">Filter by Brand</div>
+            <div id="brandFilters"></div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="sidebar-title">Price Range</div>
+            <div class="form-group">
+              <label>Max: ₦<span id="priceVal">1,000,000</span></label>
+              <input type="range" class="price-range" min="10000" max="2000000" step="10000" value="2000000" id="priceRange" oninput="updatePrice(this.value)"/>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div>
+            <div class="sidebar-title">Availability</div>
+            <label class="filter-option"><input type="checkbox" checked onchange="filterProducts()"> In Stock</label>
+            <label class="filter-option"><input type="checkbox" onchange="filterProducts()"> Pre-order</label>
+          </div>
+          <div class="divider"></div>
+          <button class="btn btn-outline btn-sm" style="width:100%;" onclick="clearFilters()">Clear Filters</button>
+        </div>
+        <div>
+          <div class="shop-header">
+            <div class="shop-count" id="shopCount">Showing all products</div>
+            <div class="shop-sort">
+              <select class="form-control" id="sortSelect" onchange="filterProducts()">
+                <option value="default">Default</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="name">Name A-Z</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
+          </div>
+          <div class="product-grid" id="shopProductGrid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-mount"></div>
+  <div id="modals-mount"></div>
+
+  <script src="components.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TechFix — Contact Us</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="contact">
+
+  <div id="topbar-mount"></div>
+  <div id="navbar-mount"></div>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">Get In Touch</div>
+        <h1 class="section-title">Contact Us</h1>
+        <p class="section-subtitle">We're here to help. Reach out via any channel below.</p>
+      </div>
+      <div class="contact-layout">
+        <div>
+          <div class="contact-info-item"><div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div><div><div class="contact-info-title">Visit Our Store</div><div class="contact-info-text">123 Tech Lane, Ikeja, Lagos State, Nigeria</div></div></div>
+          <div class="contact-info-item"><div class="contact-icon"><i class="fas fa-phone"></i></div><div><div class="contact-info-title">Call Us</div><div class="contact-info-text">+234 800 123 4567<br/>Mon – Sat, 8am – 6pm</div></div></div>
+          <div class="contact-info-item"><div class="contact-icon"><i class="fas fa-envelope"></i></div><div><div class="contact-info-title">Email Us</div><div class="contact-info-text">hello@techfix.ng<br/>support@techfix.ng</div></div></div>
+          <div class="contact-info-item"><div class="contact-icon"><i class="fab fa-whatsapp"></i></div><div><div class="contact-info-title">WhatsApp</div><div class="contact-info-text">+234 800 123 4567<br/><a href="https://wa.me/2348001234567" target="_blank" style="color:var(--accent);">Chat Now →</a></div></div></div>
+          <div class="map-placeholder"><i class="fas fa-map" style="font-size:40px;color:var(--text3);"></i><span>123 Tech Lane, Ikeja, Lagos</span></div>
+        </div>
+        <div class="card" style="padding:36px;">
+          <h3 style="font-family:var(--font);font-weight:800;font-size:20px;margin-bottom:24px;">Send a Message</h3>
+          <div class="grid-2">
+            <div class="form-group"><label>First Name</label><input type="text" class="form-control" placeholder="John" id="cFirstName"/></div>
+            <div class="form-group"><label>Last Name</label><input type="text" class="form-control" placeholder="Doe" id="cLastName"/></div>
+          </div>
+          <div class="form-group"><label>Email</label><input type="email" class="form-control" placeholder="john@example.com" id="cEmail"/></div>
+          <div class="form-group"><label>Phone (Optional)</label><input type="tel" class="form-control" placeholder="+234..." id="cPhone"/></div>
+          <div class="form-group"><label>Subject</label><select class="form-control" id="cSubject"><option>Product Inquiry</option><option>Repair Booking</option><option>Order Support</option><option>Complaint</option><option>Partnership</option><option>Other</option></select></div>
+          <div class="form-group"><label>Message</label><textarea class="form-control" rows="5" placeholder="Your message..." id="cMessage" style="resize:vertical;"></textarea></div>
+          <button class="btn btn-primary" style="width:100%;" onclick="submitContact()"><i class="fas fa-paper-plane"></i> Send Message</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-mount"></div>
+  <div id="modals-mount"></div>
+
+  <script src="components.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,62 +1,87 @@
 // ============================================================
 // TECHFIX — main.js
-// All application logic: routing, products, cart, auth,
+// Application logic: routing, products, cart, auth,
 // repair booking, tracking, FAQ, checkout, toasts, etc.
+//
+// BACKEND INTEGRATION:
+//   Replace localStorage mock calls with api.xxx() functions
+//   from api.js once the backend is ready. Each section is
+//   marked with a "// TODO (backend):" comment.
 // ============================================================
 
 // ===== PRODUCT DATA =====
+// TODO (backend): Replace with api.getProducts() on page load.
+// The `image` field is a placeholder — swap the placehold.co
+// URL for the real product image URL from your database/CDN.
 const products = [
   {
     id: 1, name: 'iPhone 15 Pro', category: 'Smartphones', brand: 'Apple',
-    price: 850000, oldPrice: 900000, rating: 4.9, reviews: 234, emoji: '📱', badge: 'Hot', inStock: true,
+    price: 850000, oldPrice: 900000, rating: 4.9, reviews: 234,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=iPhone+15+Pro',
+    badge: 'Hot', inStock: true,
     desc: '6.1" Super Retina XDR display, A17 Pro chip, 48MP camera system, USB-C connectivity.',
     specs: { Display: '6.1" OLED', Processor: 'A17 Pro', RAM: '8GB', Storage: '256GB', Battery: '3274mAh', OS: 'iOS 17' }
   },
   {
     id: 2, name: 'Samsung Galaxy S24', category: 'Smartphones', brand: 'Samsung',
-    price: 720000, oldPrice: null, rating: 4.8, reviews: 189, emoji: '📱', badge: 'New', inStock: true,
+    price: 720000, oldPrice: null, rating: 4.8, reviews: 189,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+S24',
+    badge: 'New', inStock: true,
     desc: '6.2" Dynamic AMOLED 2X, Snapdragon 8 Gen 3, 50MP camera, 25W fast charging.',
     specs: { Display: '6.2" AMOLED', Processor: 'Snapdragon 8 Gen 3', RAM: '8GB', Storage: '256GB', Battery: '4000mAh', OS: 'Android 14' }
   },
   {
     id: 3, name: 'MacBook Air M3', category: 'Laptops', brand: 'Apple',
-    price: 1250000, oldPrice: 1350000, rating: 4.9, reviews: 112, emoji: '💻', badge: 'Sale', inStock: true,
+    price: 1250000, oldPrice: 1350000, rating: 4.9, reviews: 112,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=MacBook+Air+M3',
+    badge: 'Sale', inStock: true,
     desc: '13.6" Liquid Retina display, M3 chip, up to 18hr battery, fanless design.',
     specs: { Display: '13.6" Liquid Retina', Processor: 'Apple M3', RAM: '8GB', Storage: '256GB SSD', Battery: '18 hours', OS: 'macOS Sonoma' }
   },
   {
     id: 4, name: 'AirPods Pro 2nd Gen', category: 'Accessories', brand: 'Apple',
-    price: 120000, oldPrice: null, rating: 4.8, reviews: 308, emoji: '🎧', badge: null, inStock: true,
+    price: 120000, oldPrice: null, rating: 4.8, reviews: 308,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=AirPods+Pro',
+    badge: null, inStock: true,
     desc: 'Active Noise Cancellation, Transparency mode, Adaptive Audio, MagSafe charging.',
     specs: { Type: 'In-Ear ANC', Battery: '6hrs + 30hrs case', Water: 'IPX4', Chip: 'H2', Connectivity: 'Bluetooth 5.3', Case: 'MagSafe' }
   },
   {
     id: 5, name: 'Samsung Galaxy Tab S9', category: 'Tablets', brand: 'Samsung',
-    price: 380000, oldPrice: 420000, rating: 4.7, reviews: 76, emoji: '📲', badge: 'Sale', inStock: true,
+    price: 380000, oldPrice: 420000, rating: 4.7, reviews: 76,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+Tab+S9',
+    badge: 'Sale', inStock: true,
     desc: '11" Dynamic AMOLED, Snapdragon 8 Gen 2, 256GB storage, S-Pen included.',
     specs: { Display: '11" AMOLED', Processor: 'Snapdragon 8 Gen 2', RAM: '8GB', Storage: '256GB', Battery: '8400mAh', OS: 'Android 13' }
   },
   {
     id: 6, name: 'HP Pavilion 15', category: 'Laptops', brand: 'HP',
-    price: 480000, oldPrice: null, rating: 4.5, reviews: 93, emoji: '💻', badge: 'New', inStock: true,
+    price: 480000, oldPrice: null, rating: 4.5, reviews: 93,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=HP+Pavilion+15',
+    badge: 'New', inStock: true,
     desc: 'Intel Core i5 13th Gen, 8GB RAM, 512GB SSD, Full HD IPS display.',
     specs: { Display: '15.6" FHD IPS', Processor: 'Intel i5-1335U', RAM: '8GB DDR4', Storage: '512GB SSD', Battery: '41Wh', OS: 'Windows 11' }
   },
   {
     id: 7, name: 'Tecno Camon 30', category: 'Smartphones', brand: 'Tecno',
-    price: 185000, oldPrice: null, rating: 4.4, reviews: 142, emoji: '📱', badge: null, inStock: true,
+    price: 185000, oldPrice: null, rating: 4.4, reviews: 142,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Tecno+Camon+30',
+    badge: null, inStock: true,
     desc: '6.78" AMOLED, 50MP OIS camera, Dimensity 8050, 5000mAh battery, 33W charging.',
     specs: { Display: '6.78" AMOLED', Processor: 'Dimensity 8050', RAM: '8GB', Storage: '256GB', Battery: '5000mAh', OS: 'Android 14' }
   },
   {
     id: 8, name: 'Anker PowerCore 26800', category: 'Accessories', brand: 'Anker',
-    price: 42000, oldPrice: null, rating: 4.6, reviews: 201, emoji: '🔋', badge: null, inStock: true,
+    price: 42000, oldPrice: null, rating: 4.6, reviews: 201,
+    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Anker+PowerCore',
+    badge: null, inStock: true,
     desc: '26800mAh power bank, 65W PD, charges up to 3 devices simultaneously.',
     specs: { Capacity: '26800mAh', Output: '65W PD', Ports: '2x USB-A, 1x USB-C', Weight: '620g', Warranty: '18 months', Certified: 'FCC, CE' }
   },
 ];
 
 // ===== FAQ DATA =====
+// TODO (backend): Replace with api.getFaqs() if you add a CMS for FAQs.
 const faqs = [
   { q: 'How do I place an order?', a: 'Browse our shop, add items to cart, and proceed to checkout. Payment is processed securely via Paystack.', cat: 'orders' },
   { q: 'What are your delivery options?', a: 'We offer same-day delivery within Lagos (orders before 12pm), and nationwide delivery in 3–5 business days via courier.', cat: 'orders' },
@@ -73,6 +98,7 @@ const faqs = [
 ];
 
 // ===== DEMO REPAIR TICKETS =====
+// TODO (backend): Replace trackRepair() with api.trackRepair(ticketId)
 const demoTickets = [
   { id: 'TF-20260001', device: 'Smartphone', brand: 'Samsung', model: 'Galaxy S23', issue: 'Screen Repair', name: 'John Doe', date: 'Feb 14, 2026', status: 'in-progress' },
   { id: 'TF-20260002', device: 'Laptop', brand: 'HP', model: 'Pavilion 15', issue: 'Battery Replacement', name: 'Ada Smith', date: 'Feb 12, 2026', status: 'completed' },
@@ -94,27 +120,22 @@ const brands = [...new Set(products.map(p => p.brand))];
 
 
 // ============================================================
-// PAGE ROUTING
+// PAGE ROUTING  (multi-page)
 // ============================================================
 function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById(id);
-  if (target) { target.classList.add('active'); window.scrollTo(0, 0); }
-
-  // Update nav active state
-  const navMap = { home: 'Home', shop: 'Shop', repair: 'Book Repair', services: 'Services', about: 'About', contact: 'Contact' };
-  document.querySelectorAll('.nav-link').forEach(l => {
-    l.classList.toggle('active', l.textContent.trim() === navMap[id]);
-  });
-
-  // Page-specific init
-  if (id === 'shop') { renderCategoryTabs(); renderBrandFilters(); filterProducts(); }
-  if (id === 'home') renderFeaturedProducts();
-  if (id === 'faq') renderFaq();
-  if (id === 'dashboard') {
-    if (!currentUser) { openModal('authModal'); return; }
-    updateDashboard();
-  }
+  const pageMap = {
+    home:      'index.html',
+    shop:      'shop.html',
+    repair:    'repair.html',
+    track:     'track.html',
+    services:  'services.html',
+    about:     'about.html',
+    contact:   'contact.html',
+    faq:       'faq.html',
+    terms:     'terms.html',
+    dashboard: 'dashboard.html',
+  };
+  if (pageMap[id]) window.location.href = pageMap[id];
 }
 
 
@@ -127,7 +148,7 @@ function productCardHTML(p) {
     <div class="product-card" onclick="openProduct(${p.id})">
       <div class="product-img">
         <div class="product-img-bg"></div>
-        <span style="font-size:64px;position:relative;">${p.emoji}</span>
+        <img src="${p.image}" alt="${p.name}" style="width:120px;height:120px;object-fit:contain;position:relative;"/>
         ${p.badge ? `<div class="product-badge"><span class="badge badge-blue">${p.badge}</span></div>` : ''}
         <div class="product-wishlist ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id},this)">
           <i class="fas fa-heart"></i>
@@ -237,10 +258,14 @@ function openProduct(id) {
   if (!p) return;
   document.getElementById('productDetailContent').innerHTML = `
     <div>
-      <div class="product-detail-img">${p.emoji}</div>
+      <div class="product-detail-img" style="display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:16px;padding:24px;">
+        <img src="${p.image}" alt="${p.name}" style="width:220px;height:220px;object-fit:contain;"/>
+      </div>
       <div class="product-thumbnails">
-        ${[p.emoji, '📦', '🔍', '⭐'].map((e, i) =>
-          `<div class="thumb ${i === 0 ? 'active' : ''}">${e}</div>`
+        ${[0,1,2,3].map((i) =>
+          `<div class="thumb ${i === 0 ? 'active' : ''}" style="display:flex;align-items:center;justify-content:center;background:var(--bg2);">
+            <img src="${p.image}" alt="" style="width:36px;height:36px;object-fit:contain;opacity:${i===0?1:0.4};"/>
+          </div>`
         ).join('')}
       </div>
     </div>
@@ -305,7 +330,8 @@ function updateQty(id, delta) {
 
 function saveCart() {
   localStorage.setItem('tfCart', JSON.stringify(cart));
-  document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.qty, 0);
+  const countEl = document.getElementById('cartCount');
+  if (countEl) countEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
 }
 
 function renderCart() {
@@ -314,23 +340,29 @@ function renderCart() {
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const itemCount = cart.reduce((s, i) => s + i.qty, 0);
 
-  count.textContent = `(${itemCount} item${itemCount !== 1 ? 's' : ''})`;
-  document.getElementById('cartSubtotal').textContent = `₦${total.toLocaleString()}`;
-  document.getElementById('cartTotal').textContent = `₦${total.toLocaleString()}`;
+  if (count) count.textContent = `(${itemCount} item${itemCount !== 1 ? 's' : ''})`;
+  const subtotalEl = document.getElementById('cartSubtotal');
+  const totalEl = document.getElementById('cartTotal');
+  if (subtotalEl) subtotalEl.textContent = `₦${total.toLocaleString()}`;
+  if (totalEl) totalEl.textContent = `₦${total.toLocaleString()}`;
+
+  if (!body) return;
 
   if (!cart.length) {
     body.innerHTML = `
       <div class="cart-empty">
         <i class="fas fa-shopping-cart"></i>
         <p>Your cart is empty</p>
-        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();showPage('shop')">Start Shopping</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='shop.html'">Start Shopping</button>
       </div>`;
     return;
   }
 
   body.innerHTML = cart.map(i => `
     <div class="cart-item">
-      <div class="cart-item-img">${i.emoji}</div>
+      <div class="cart-item-img" style="display:flex;align-items:center;justify-content:center;background:var(--bg2);">
+        <img src="${i.image}" alt="${i.name}" style="width:44px;height:44px;object-fit:contain;"/>
+      </div>
       <div class="cart-item-info">
         <div class="cart-item-name">${i.name}</div>
         <div class="cart-item-price">₦${i.price.toLocaleString()}</div>
@@ -423,6 +455,7 @@ function formatCard(input) {
 }
 
 function processPayment() {
+  // TODO (backend): Call api.createOrder() here, then redirect to Paystack
   showToast('Processing payment...', 'info');
   setTimeout(() => {
     cart = [];
@@ -456,6 +489,12 @@ function handleLogin() {
   const email = document.getElementById('loginEmail').value;
   const pass = document.getElementById('loginPassword').value;
   if (!email || !pass) { showToast('Please enter email and password', 'error'); return; }
+
+  // TODO (backend): Replace below with:
+  // const res = await api.login(email, pass);
+  // if (!res.ok) { showToast(res.error, 'error'); return; }
+  // localStorage.setItem('tfToken', res.data.token);
+  // currentUser = res.data.user;
   currentUser = { email, name: email.split('@')[0], firstName: email.split('@')[0], lastName: 'User' };
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
@@ -472,6 +511,12 @@ function handleRegister() {
   if (!first || !last || !email || !pass) { showToast('Please fill in all fields', 'error'); return; }
   if (pass !== confirm) { showToast('Passwords do not match', 'error'); return; }
   if (pass.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+
+  // TODO (backend): Replace below with:
+  // const res = await api.register({ firstName: first, lastName: last, email, password: pass });
+  // if (!res.ok) { showToast(res.error, 'error'); return; }
+  // localStorage.setItem('tfToken', res.data.token);
+  // currentUser = res.data.user;
   currentUser = { email, name: `${first} ${last}`, firstName: first, lastName: last };
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
@@ -480,24 +525,25 @@ function handleRegister() {
 }
 
 function handleUserNav() {
-  if (currentUser) showPage('dashboard');
+  if (currentUser) window.location.href = 'dashboard.html';
   else openModal('authModal');
 }
 
 function logout() {
   currentUser = null;
   localStorage.removeItem('tfUser');
-  showPage('home');
-  updateNavUser();
-  showToast("You've been signed out", 'info');
+  localStorage.removeItem('tfToken');
+  window.location.href = 'index.html';
 }
 
 function showForgotPassword() {
+  // TODO (backend): Call api.forgotPassword(email)
   showToast('Password reset link sent to your email!', 'success');
 }
 
 function updateNavUser() {
   const btn = document.getElementById('userNavBtn');
+  if (!btn) return;
   btn.innerHTML = currentUser
     ? '<i class="fas fa-user-check" style="color:var(--accent);"></i>'
     : '<i class="fas fa-user"></i>';
@@ -509,19 +555,30 @@ function updateNavUser() {
 // ============================================================
 function updateDashboard() {
   if (!currentUser) return;
-  document.getElementById('dashUsername').textContent = currentUser.firstName || currentUser.name;
-  document.getElementById('dashFullName').textContent = currentUser.name;
-  document.getElementById('dashEmail').textContent = currentUser.email;
-  document.getElementById('dashAvatar').textContent = (currentUser.firstName?.[0] || 'U') + (currentUser.lastName?.[0] || 'U');
-  document.getElementById('profileFirst').value = currentUser.firstName || '';
-  document.getElementById('profileLast').value = currentUser.lastName || '';
-  document.getElementById('profileEmail').value = currentUser.email || '';
+  // TODO (backend): Fetch real orders with api.getMyOrders() and repairs with api.getMyRepairs()
+  const uname = document.getElementById('dashUsername');
+  const fullName = document.getElementById('dashFullName');
+  const dEmail = document.getElementById('dashEmail');
+  const avatar = document.getElementById('dashAvatar');
+  if (uname) uname.textContent = currentUser.firstName || currentUser.name;
+  if (fullName) fullName.textContent = currentUser.name;
+  if (dEmail) dEmail.textContent = currentUser.email;
+  if (avatar) avatar.textContent = (currentUser.firstName?.[0] || 'U') + (currentUser.lastName?.[0] || 'U');
+
+  const pFirst = document.getElementById('profileFirst');
+  const pLast = document.getElementById('profileLast');
+  const pEmail = document.getElementById('profileEmail');
+  if (pFirst) pFirst.value = currentUser.firstName || '';
+  if (pLast) pLast.value = currentUser.lastName || '';
+  if (pEmail) pEmail.value = currentUser.email || '';
 
   const wishGrid = document.getElementById('wishlistGrid');
-  const wishProducts = products.filter(p => wishlist.includes(p.id));
-  wishGrid.innerHTML = wishProducts.length
-    ? wishProducts.map(productCardHTML).join('')
-    : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <span style="color:var(--accent);cursor:pointer;" onclick="showPage('shop')">Browse products →</span></p>`;
+  if (wishGrid) {
+    const wishProducts = products.filter(p => wishlist.includes(p.id));
+    wishGrid.innerHTML = wishProducts.length
+      ? wishProducts.map(productCardHTML).join('')
+      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="shop.html" style="color:var(--accent);">Browse products →</a></p>`;
+  }
 }
 
 function showDash(section) {
@@ -529,7 +586,6 @@ function showDash(section) {
   document.querySelectorAll('.dash-nav-item').forEach(d => d.classList.remove('active'));
   const target = document.getElementById(`dash-${section}`);
   if (target) target.classList.add('active');
-  // Mark correct nav item active
   document.querySelectorAll('.dash-nav-item').forEach(d => {
     if (d.getAttribute('onclick')?.includes(section)) d.classList.add('active');
   });
@@ -542,6 +598,7 @@ function saveProfile() {
   currentUser.name = `${currentUser.firstName} ${currentUser.lastName}`;
   currentUser.email = document.getElementById('profileEmail').value;
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
+  // TODO (backend): await api.updateProfile(currentUser)
   showToast('Profile updated successfully!', 'success');
   updateDashboard();
 }
@@ -578,7 +635,7 @@ function bookingNext(step) {
     const lineEl = document.getElementById(`bLine${s}`);
     if (lineEl) lineEl.classList.toggle('active', s < step);
   });
-  window.scrollTo(0, document.getElementById('repair').offsetTop);
+  window.scrollTo(0, 0);
 }
 
 function submitRepairBooking() {
@@ -601,6 +658,10 @@ function submitRepairBooking() {
     status: 'pending'
   };
 
+  // TODO (backend): Replace below with:
+  // const res = await api.bookRepair(ticket);
+  // if (!res.ok) { showToast(res.error, 'error'); return; }
+  // ticketId = res.data.ticket.id;
   tickets.push(ticket);
   localStorage.setItem('tfTickets', JSON.stringify(tickets));
   document.getElementById('ticketIdDisplay').textContent = ticketId;
@@ -632,10 +693,14 @@ function trackRepair() {
   const input = document.getElementById('trackInput').value.trim().toUpperCase();
   const result = document.getElementById('trackResult');
   const empty = document.getElementById('trackEmpty');
+
+  // TODO (backend): Replace below with:
+  // const res = await api.trackRepair(input);
+  // const found = res.ok ? res.data.ticket : null;
   const allTickets = [...demoTickets, ...tickets];
   const found = allTickets.find(t => t.id.toUpperCase() === input);
 
-  empty.style.display = 'none';
+  if (empty) empty.style.display = 'none';
 
   if (!found) {
     result.style.display = 'block';
@@ -684,6 +749,7 @@ function trackRepair() {
 // ============================================================
 function renderFaq() {
   const list = document.getElementById('faqList');
+  if (!list) return;
   const filtered = currentFaqCat === 'all' ? faqs : faqs.filter(f => f.cat === currentFaqCat);
   list.innerHTML = filtered.map((f, i) => `
     <div class="faq-item">
@@ -721,6 +787,7 @@ function submitContact() {
   const email = document.getElementById('cEmail').value;
   const msg = document.getElementById('cMessage').value;
   if (!first || !email || !msg) { showToast('Please fill in all required fields', 'error'); return; }
+  // TODO (backend): await api.sendMessage({ firstName: first, email, message: msg, ... })
   showToast("Message sent! We'll get back to you shortly.", 'success');
   ['cFirstName', 'cLastName', 'cEmail', 'cPhone', 'cMessage'].forEach(id => document.getElementById(id).value = '');
 }
@@ -732,6 +799,7 @@ function submitContact() {
 function subscribeNewsletter() {
   const email = document.getElementById('newsletterEmail').value;
   if (!email || !email.includes('@')) { showToast('Please enter a valid email', 'error'); return; }
+  // TODO (backend): await api.subscribe(email)
   showToast('Subscribed! Welcome to the TechFix family 🎉', 'success');
   document.getElementById('newsletterEmail').value = '';
 }
@@ -741,8 +809,7 @@ function subscribeNewsletter() {
 // SEARCH
 // ============================================================
 function toggleSearch() {
-  showPage('shop');
-  setTimeout(() => { document.getElementById('shopSearch')?.focus(); }, 300);
+  window.location.href = 'shop.html';
 }
 
 
@@ -751,6 +818,7 @@ function toggleSearch() {
 // ============================================================
 function showToast(msg, type = 'info') {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
@@ -761,22 +829,23 @@ function showToast(msg, type = 'info') {
 
 
 // ============================================================
-// INITIALISATION
+// PAGE AUTO-INIT
+// Runs once components.js has already injected the navbar/footer
 // ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  // Init cart count
-  saveCart();
+(function initPage() {
+  const page = document.body.dataset.page || 'home';
 
-  // Restore user session
+  // Always: sync cart count & user state
+  saveCart();
   if (currentUser) updateNavUser();
 
-  // Render home products
-  renderFeaturedProducts();
-
-  // Close modals when clicking overlay background
-  document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function (e) {
-      if (e.target === this) this.classList.remove('open');
-    });
-  });
-});
+  // Page-specific init
+  if (page === 'home')      renderFeaturedProducts();
+  if (page === 'shop')      { renderCategoryTabs(); renderBrandFilters(); filterProducts(); }
+  if (page === 'faq')       renderFaq();
+  if (page === 'dashboard') {
+    if (!currentUser) { window.location.href = 'index.html'; return; }
+    updateDashboard();
+    showDash('overview');
+  }
+})();

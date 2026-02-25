@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TechFix — Book a Repair</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Karla:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body data-page="repair">
+
+  <div id="topbar-mount"></div>
+  <div id="navbar-mount"></div>
+
+  <section class="section">
+    <div class="container">
+      <div class="page-hero" style="padding-top:0;text-align:left;">
+        <h1 class="page-hero-title">Book a Repair</h1>
+        <p class="page-hero-subtitle">Fill in the form below and our team will get back to you within 2 hours</p>
+      </div>
+      <div class="booking-layout">
+        <div>
+          <!-- Step Indicator -->
+          <div class="step-indicator">
+            <div class="step active" id="bStep1"><div class="step-num">1</div><div class="step-label">Device Info</div></div>
+            <div class="step-line" id="bLine1"></div>
+            <div class="step" id="bStep2"><div class="step-num">2</div><div class="step-label">Issue Details</div></div>
+            <div class="step-line" id="bLine2"></div>
+            <div class="step" id="bStep3"><div class="step-num">3</div><div class="step-label">Your Details</div></div>
+          </div>
+
+          <!-- Step 1: Device Info -->
+          <div class="booking-form-card" id="bookStep1">
+            <h3 style="font-family:var(--font);font-weight:800;font-size:20px;margin-bottom:24px;">What device needs repair?</h3>
+            <div class="device-options" id="deviceOptions">
+              <div class="device-option selected" onclick="selectDevice(this,'Smartphone')"><i class="fas fa-mobile-alt"></i><span>Smartphone</span></div>
+              <div class="device-option" onclick="selectDevice(this,'Laptop')"><i class="fas fa-laptop"></i><span>Laptop</span></div>
+              <div class="device-option" onclick="selectDevice(this,'Tablet')"><i class="fas fa-tablet-alt"></i><span>Tablet</span></div>
+              <div class="device-option" onclick="selectDevice(this,'Desktop')"><i class="fas fa-desktop"></i><span>Desktop</span></div>
+              <div class="device-option" onclick="selectDevice(this,'Smartwatch')"><i class="fas fa-clock"></i><span>Smartwatch</span></div>
+              <div class="device-option" onclick="selectDevice(this,'Other')"><i class="fas fa-ellipsis-h"></i><span>Other</span></div>
+            </div>
+            <div class="form-group mt-4">
+              <label>Device Brand</label>
+              <select class="form-control" id="deviceBrand">
+                <option value="">Select brand...</option>
+                <option>Apple</option><option>Samsung</option><option>Tecno</option><option>Infinix</option>
+                <option>Xiaomi</option><option>HP</option><option>Lenovo</option><option>Dell</option>
+                <option>Asus</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Device Model</label>
+              <input type="text" class="form-control" placeholder="e.g. iPhone 14 Pro, Samsung Galaxy S23..." id="deviceModel"/>
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="bookingNext(2)">Continue <i class="fas fa-arrow-right"></i></button>
+          </div>
+
+          <!-- Step 2: Issue Details -->
+          <div class="booking-form-card" id="bookStep2" style="display:none;">
+            <h3 style="font-family:var(--font);font-weight:800;font-size:20px;margin-bottom:24px;">Describe the issue</h3>
+            <div class="form-group">
+              <label>Issue Type</label>
+              <select class="form-control" id="issueType">
+                <option value="">Select issue...</option>
+                <option>Cracked/Broken Screen</option><option>Battery Replacement</option>
+                <option>Won't Turn On</option><option>Water Damage</option>
+                <option>Charging Problem</option><option>Speaker/Microphone Issue</option>
+                <option>Camera Problem</option><option>Software Issue</option>
+                <option>Keyboard/Touchpad</option><option>Overheating</option><option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Issue Description</label>
+              <textarea class="form-control" rows="4" placeholder="Tell us more about the problem in detail..." id="issueDesc" style="resize:vertical;"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Upload Images (Optional)</label>
+              <div class="upload-area" onclick="document.getElementById('repairImages').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload images of the damage</p>
+                <p style="font-size:12px;color:var(--text3);margin-top:4px;">JPG, PNG up to 5MB each</p>
+                <input type="file" id="repairImages" accept="image/*" multiple style="display:none;" onchange="handleImageUpload(this)"/>
+              </div>
+              <div id="uploadedImages" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-outline" style="flex:1;" onclick="bookingNext(1)"><i class="fas fa-arrow-left"></i> Back</button>
+              <button class="btn btn-primary" style="flex:2;" onclick="bookingNext(3)">Continue <i class="fas fa-arrow-right"></i></button>
+            </div>
+          </div>
+
+          <!-- Step 3: Contact Details -->
+          <div class="booking-form-card" id="bookStep3" style="display:none;">
+            <h3 style="font-family:var(--font);font-weight:800;font-size:20px;margin-bottom:24px;">Your contact details</h3>
+            <div class="grid-2">
+              <div class="form-group"><label>First Name</label><input type="text" class="form-control" placeholder="John" id="repairFirstName"/></div>
+              <div class="form-group"><label>Last Name</label><input type="text" class="form-control" placeholder="Doe" id="repairLastName"/></div>
+            </div>
+            <div class="form-group"><label>Email Address</label><input type="email" class="form-control" placeholder="john@example.com" id="repairEmail"/></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" class="form-control" placeholder="+234 800 000 0000" id="repairPhone"/></div>
+            <div class="form-group">
+              <label>Drop-off / Pick-up Preference</label>
+              <select class="form-control" id="repairMethod">
+                <option>Drop off at our store</option>
+                <option>We pick up from you (+₦500)</option>
+                <option>Courier drop-off</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Address (if pickup selected)</label><textarea class="form-control" rows="2" placeholder="Enter your address..." id="repairAddress"></textarea></div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-outline" style="flex:1;" onclick="bookingNext(2)"><i class="fas fa-arrow-left"></i> Back</button>
+              <button class="btn btn-primary" style="flex:2;" onclick="submitRepairBooking()"><i class="fas fa-paper-plane"></i> Submit Booking</button>
+            </div>
+          </div>
+
+          <!-- Booking Success -->
+          <div id="bookingSuccess" style="display:none;">
+            <div class="booking-form-card">
+              <div class="success-state">
+                <div class="success-icon"><i class="fas fa-check"></i></div>
+                <div class="success-title">Booking Submitted!</div>
+                <div class="success-desc">Your repair request has been received. Your ticket ID is <strong id="ticketIdDisplay" style="color:var(--accent);"></strong>. We'll contact you within 2 hours.</div>
+                <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                  <a href="track.html" class="btn btn-primary">Track My Repair</a>
+                  <a href="index.html" class="btn btn-outline">Back to Home</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking Sidebar -->
+        <div class="booking-sidebar-card">
+          <h4 style="font-family:var(--font);font-weight:700;margin-bottom:16px;">Why Choose Us?</h4>
+          <ul class="feature-list">
+            <li class="feature-item"><div class="feature-check"><i class="fas fa-check"></i></div><div class="feature-text"><h4>Fast Turnaround</h4><p>Most repairs done in 24 hours</p></div></li>
+            <li class="feature-item"><div class="feature-check"><i class="fas fa-check"></i></div><div class="feature-text"><h4>Certified Technicians</h4><p>Trained and experienced experts</p></div></li>
+            <li class="feature-item"><div class="feature-check"><i class="fas fa-check"></i></div><div class="feature-text"><h4>1 Month Warranty</h4><p>On all repair work done</p></div></li>
+            <li class="feature-item"><div class="feature-check"><i class="fas fa-check"></i></div><div class="feature-text"><h4>Transparent Pricing</h4><p>No hidden charges ever</p></div></li>
+          </ul>
+          <div class="divider"></div>
+          <div style="text-align:center;">
+            <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Have questions? Chat with us</div>
+            <a href="https://wa.me/2348001234567" target="_blank" class="btn btn-success" style="width:100%;justify-content:center;"><i class="fab fa-whatsapp"></i> WhatsApp Us</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="footer-mount"></div>
+  <div id="modals-mount"></div>
+
+  <script src="components.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
