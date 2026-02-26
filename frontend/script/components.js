@@ -20,6 +20,28 @@
     return currentPage() === page ? 'active' : '';
   }
 
+  // Absolute paths — work from both /frontend/index.html
+  // and /frontend/public/*.html
+  const PAGES = {
+    home:      '/frontend/index.html',
+    shop:      '/frontend/public/shop.html',
+    repair:    '/frontend/public/repair.html',
+    services:  '/frontend/public/services.html',
+    about:     '/frontend/public/about.html',
+    contact:   '/frontend/public/contact.html',
+    track:     '/frontend/public/track.html',
+    faq:       '/frontend/public/faq.html',
+    terms:     '/frontend/public/terms.html',
+    dashboard: '/frontend/public/dashboard.html',
+  };
+
+  function go(page) {
+    window.location.href = PAGES[page] || '/frontend/index.html';
+  }
+
+  // Expose go() globally so main.js and inline HTML can call it
+  window.go = go;
+
 
   // ============================================================
   // TOPBAR
@@ -39,17 +61,17 @@
   mount('navbar-mount', `
     <nav class="navbar">
       <div class="container nav-inner">
-        <div class="nav-logo" onclick="window.location.href='index.html'" style="cursor:pointer;">
+        <div class="nav-logo" onclick="go('home')" style="cursor:pointer;">
           <div class="logo-icon">⚡</div>
           <div class="logo-text">Tech<span>Fix</span></div>
         </div>
         <div class="nav-links">
-          <div class="nav-link ${navActive('home')}"     onclick="window.location.href='index.html'">Home</div>
-          <div class="nav-link ${navActive('shop')}"     onclick="window.location.href='shop.html'">Shop</div>
-          <div class="nav-link ${navActive('repair')}"   onclick="window.location.href='repair.html'">Book Repair</div>
-          <div class="nav-link ${navActive('services')}" onclick="window.location.href='services.html'">Services</div>
-          <div class="nav-link ${navActive('about')}"    onclick="window.location.href='about.html'">About</div>
-          <div class="nav-link ${navActive('contact')}"  onclick="window.location.href='contact.html'">Contact</div>
+          <div class="nav-link ${navActive('home')}"     onclick="go('home')">Home</div>
+          <div class="nav-link ${navActive('shop')}"     onclick="go('shop')">Shop</div>
+          <div class="nav-link ${navActive('repair')}"   onclick="go('repair')">Book Repair</div>
+          <div class="nav-link ${navActive('services')}" onclick="go('services')">Services</div>
+          <div class="nav-link ${navActive('about')}"    onclick="go('about')">About</div>
+          <div class="nav-link ${navActive('contact')}"  onclick="go('contact')">Contact</div>
         </div>
         <div class="nav-actions">
           <div class="nav-btn" onclick="toggleSearch()" title="Search">
@@ -62,7 +84,7 @@
           <div class="nav-btn" id="userNavBtn" onclick="handleUserNav()" title="Account">
             <i class="fas fa-user"></i>
           </div>
-          <div class="nav-cta" onclick="window.location.href='repair.html'" style="cursor:pointer;">Book Repair</div>
+          <div class="nav-cta" onclick="go('repair')" style="cursor:pointer;">Book Repair</div>
         </div>
       </div>
     </nav>
@@ -88,18 +110,18 @@
           </div>
           <div>
             <div class="footer-col-title">Quick Links</div>
-            <div class="footer-link" onclick="window.location.href='index.html'">Home</div>
-            <div class="footer-link" onclick="window.location.href='shop.html'">Shop</div>
-            <div class="footer-link" onclick="window.location.href='repair.html'">Book Repair</div>
-            <div class="footer-link" onclick="window.location.href='track.html'">Track Repair</div>
-            <div class="footer-link" onclick="window.location.href='about.html'">About Us</div>
+            <div class="footer-link" onclick="go('home')">Home</div>
+            <div class="footer-link" onclick="go('shop')">Shop</div>
+            <div class="footer-link" onclick="go('repair')">Book Repair</div>
+            <div class="footer-link" onclick="go('track')">Track Repair</div>
+            <div class="footer-link" onclick="go('about')">About Us</div>
           </div>
           <div>
             <div class="footer-col-title">Support</div>
-            <div class="footer-link" onclick="window.location.href='faq.html'">FAQ</div>
-            <div class="footer-link" onclick="window.location.href='contact.html'">Contact Us</div>
-            <div class="footer-link" onclick="window.location.href='terms.html'">Terms of Service</div>
-            <div class="footer-link" onclick="window.location.href='terms.html'">Privacy Policy</div>
+            <div class="footer-link" onclick="go('faq')">FAQ</div>
+            <div class="footer-link" onclick="go('contact')">Contact Us</div>
+            <div class="footer-link" onclick="go('terms')">Terms of Service</div>
+            <div class="footer-link" onclick="go('terms')">Privacy Policy</div>
           </div>
           <div>
             <div class="footer-col-title">Contact</div>
@@ -113,9 +135,9 @@
         <div class="footer-bottom">
           <span>© 2026 TechFix by CST Innovative. All rights reserved.</span>
           <div style="display:flex;gap:16px;">
-            <span class="footer-link" onclick="window.location.href='terms.html'">Privacy</span>
-            <span class="footer-link" onclick="window.location.href='terms.html'">Terms</span>
-            <span class="footer-link" onclick="window.location.href='faq.html'">FAQ</span>
+            <span class="footer-link" onclick="go('terms')">Privacy</span>
+            <span class="footer-link" onclick="go('terms')">Terms</span>
+            <span class="footer-link" onclick="go('faq')">FAQ</span>
           </div>
         </div>
       </div>
@@ -158,7 +180,7 @@
           <div class="form-group"><label>Password</label><input type="password" class="form-control" placeholder="Min 8 characters" id="regPassword"/></div>
           <div class="form-group"><label>Confirm Password</label><input type="password" class="form-control" placeholder="Repeat password" id="regConfirm"/></div>
           <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;" onclick="handleRegister()">Create Account</button>
-          <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:16px;">By creating an account you agree to our <span style="color:var(--accent);cursor:pointer;" onclick="window.location.href='terms.html'">Terms & Privacy Policy</span></p>
+          <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:16px;">By creating an account you agree to our <span style="color:var(--accent);cursor:pointer;" onclick="go('terms')">Terms & Privacy Policy</span></p>
         </div>
       </div>
     </div>
@@ -226,7 +248,7 @@
             <div class="success-title">Order Placed!</div>
             <div class="success-desc">Thank you for your purchase. A confirmation email has been sent to your inbox.</div>
             <div style="margin-top:24px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-              <button class="btn btn-primary" onclick="closeModal('checkoutModal');closeCart();window.location.href='dashboard.html'">View My Orders</button>
+              <button class="btn btn-primary" onclick="closeModal('checkoutModal');closeCart();go('dashboard')">View My Orders</button>
               <button class="btn btn-outline" onclick="closeModal('checkoutModal');closeCart();">Continue Shopping</button>
             </div>
           </div>
@@ -244,6 +266,71 @@
 
     <!-- Toast Container -->
     <div id="toastContainer"></div>
+
+    <!-- Search Overlay -->
+    <div class="modal-overlay" id="searchOverlay" onclick="if(event.target===this)toggleSearch()">
+      <div style="background:var(--bg);border-radius:20px;padding:0;width:100%;max-width:640px;margin:72px auto 0;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,0.5);">
+        
+        <!-- Search Input Bar -->
+        <div style="display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid var(--border);">
+          <i class="fas fa-search" style="color:var(--accent);font-size:18px;flex-shrink:0;"></i>
+          <input
+            type="text"
+            id="searchInput"
+            class="form-control"
+            placeholder="Search products, brands, categories..."
+            style="border:none;font-size:17px;background:transparent;outline:none;flex:1;padding:0;color:var(--text);"
+            oninput="runSearch(this.value)"
+            onkeydown="if(event.key==='Escape')toggleSearch();if(event.key==='Enter')runSearchEnter(this.value)"
+            autocomplete="off"
+          />
+          <div onclick="toggleSearch()" style="cursor:pointer;width:30px;height:30px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:13px;flex-shrink:0;border:1px solid var(--border);">✕</div>
+        </div>
+
+        <!-- Results / Default State -->
+        <div id="searchResults" style="max-height:480px;overflow-y:auto;">
+
+          <!-- Default state shown before typing -->
+          <div id="searchDefault" style="padding:20px 24px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">Popular Searches</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px;">
+              ${['iPhone', 'Samsung', 'MacBook', 'AirPods', 'Laptop', 'Tablet'].map(t =>
+                `<div onclick="document.getElementById('searchInput').value='${t}';runSearch('${t}')"
+                  style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;"
+                  onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+                  onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">${t}</div>`
+              ).join('')}
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;">Browse Categories</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              ${[
+                {icon:'📱',name:'Smartphones'},{icon:'💻',name:'Laptops'},
+                {icon:'🎧',name:'Accessories'},{icon:'📟',name:'Tablets'}
+              ].map(c =>
+                `<div onclick="window.location.href='/frontend/public/shop.html'"
+                  style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;"
+                  onmouseover="this.style.borderColor='var(--accent)'"
+                  onmouseout="this.style.borderColor='var(--border)'">
+                  <span style="font-size:22px;">${c.icon}</span>
+                  <span style="font-size:14px;font-weight:600;color:var(--text);">${c.name}</span>
+                </div>`
+              ).join('')}
+            </div>
+          </div>
+
+          <!-- Live results injected here by runSearch() -->
+          <div id="searchLiveResults"></div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;color:var(--text3);">Press <kbd style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;">ESC</kbd> to close</span>
+          <a id="searchViewAll" href="/frontend/public/shop.html" style="font-size:13px;color:var(--accent);font-weight:600;display:none;">View all results in Shop →</a>
+        </div>
+
+      </div>
+    </div>
   `);
 
 
@@ -255,5 +342,87 @@
       if (e.target === this) this.classList.remove('open');
     });
   });
+
+
+  // ============================================================
+  // SEARCH
+  // ============================================================
+  window.toggleSearch = function () {
+    const overlay = document.getElementById('searchOverlay');
+    if (!overlay) return;
+    const isOpen = overlay.classList.toggle('open');
+    if (isOpen) {
+      const input = document.getElementById('searchInput');
+      input.value = '';
+      document.getElementById('searchLiveResults').innerHTML = '';
+      document.getElementById('searchDefault').style.display = 'block';
+      document.getElementById('searchViewAll').style.display = 'none';
+      setTimeout(() => input.focus(), 50);
+    }
+  };
+
+  window.runSearch = function (query) {
+    const liveEl = document.getElementById('searchLiveResults');
+    const defaultEl = document.getElementById('searchDefault');
+    const viewAll = document.getElementById('searchViewAll');
+
+    if (!query.trim()) {
+      liveEl.innerHTML = '';
+      defaultEl.style.display = 'block';
+      viewAll.style.display = 'none';
+      return;
+    }
+
+    defaultEl.style.display = 'none';
+    viewAll.style.display = 'block';
+    viewAll.href = '/frontend/public/shop.html';
+
+    const products = window.PRODUCTS || [];
+    const q = query.toLowerCase();
+    const matches = products.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.category || '').toLowerCase().includes(q) ||
+      (p.brand || '').toLowerCase().includes(q)
+    );
+
+    if (!matches.length) {
+      liveEl.innerHTML = '<div style="padding:32px 24px;text-align:center;color:var(--text2);">' +
+        '<i class="fas fa-search" style="font-size:28px;color:var(--text3);display:block;margin-bottom:12px;"></i>' +
+        'No results for "<strong>' + query + '</strong>"</div>';
+      return;
+    }
+
+    const count = matches.length;
+    viewAll.textContent = 'View all ' + count + ' result' + (count !== 1 ? 's' : '') + ' in Shop →';
+
+    liveEl.innerHTML = '<div style="padding:8px 24px 4px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;">Products</div>' +
+      matches.slice(0, 6).map(function(p) {
+        const discount = p.oldPrice ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+        return '<div onclick="toggleSearch();if(window.openProduct)openProduct(' + p.id + ');"' +
+          ' style="display:flex;align-items:center;gap:16px;padding:12px 24px;cursor:pointer;transition:background .15s;border-radius:0;"' +
+          ' onmouseover="this.style.background=\'var(--bg2)\'" onmouseout="this.style.background=\'transparent\'">' +
+          '<div style="width:52px;height:52px;border-radius:10px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;">' +
+          '<img src="' + p.image + '" alt="' + p.name + '" style="width:40px;height:40px;object-fit:contain;" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'📦\'"/>' +
+          '</div>' +
+          '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:600;font-size:14px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + p.name + '</div>' +
+          '<div style="font-size:12px;color:var(--text3);margin-top:2px;">' + p.category + ' • ' + p.brand + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0;">' +
+          '<div style="font-weight:700;font-size:14px;color:var(--accent);">₦' + p.price.toLocaleString() + '</div>' +
+          (discount > 0 ? '<div style="font-size:11px;color:var(--green);font-weight:600;">-' + discount + '%</div>' : '') +
+          '</div>' +
+          '<button onclick="event.stopPropagation();if(window.addToCart)addToCart(' + p.id + ');"' +
+          ' style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;white-space:nowrap;">' +
+          '<i class="fas fa-plus"></i> Cart</button>' +
+          '</div>';
+      }).join('');
+  };
+
+  window.runSearchEnter = function(query) {
+    if (query.trim()) {
+      window.location.href = '/frontend/public/shop.html';
+    }
+  };
 
 })();

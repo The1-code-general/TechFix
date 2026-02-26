@@ -11,8 +11,6 @@
 
 // ===== PRODUCT DATA =====
 // TODO (backend): Replace with api.getProducts() on page load.
-// The `image` field is a placeholder — swap the placehold.co
-// URL for the real product image URL from your database/CDN.
 const products = [
   {
     id: 1, name: 'iPhone 15 Pro', category: 'Smartphones', brand: 'Apple',
@@ -80,6 +78,9 @@ const products = [
   },
 ];
 
+// Expose products globally so components.js search overlay can access them
+window.PRODUCTS = products;
+
 // ===== FAQ DATA =====
 // TODO (backend): Replace with api.getFaqs() if you add a CMS for FAQs.
 const faqs = [
@@ -124,16 +125,16 @@ const brands = [...new Set(products.map(p => p.brand))];
 // ============================================================
 function showPage(id) {
   const pageMap = {
-    home:      'index.html',
-    shop:      'shop.html',
-    repair:    'repair.html',
-    track:     'track.html',
-    services:  'services.html',
-    about:     'about.html',
-    contact:   'contact.html',
-    faq:       'faq.html',
-    terms:     'terms.html',
-    dashboard: 'dashboard.html',
+    home:      '/frontend/index.html',
+    shop:      '/frontend/public/shop.html',
+    repair:    '/frontend/public/repair.html',
+    track:     '/frontend/public/track.html',
+    services:  '/frontend/public/services.html',
+    about:     '/frontend/public/about.html',
+    contact:   '/frontend/public/contact.html',
+    faq:       '/frontend/public/faq.html',
+    terms:     '/frontend/public/terms.html',
+    dashboard: '/frontend/public/dashboard.html',
   };
   if (pageMap[id]) window.location.href = pageMap[id];
 }
@@ -353,7 +354,7 @@ function renderCart() {
       <div class="cart-empty">
         <i class="fas fa-shopping-cart"></i>
         <p>Your cart is empty</p>
-        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='shop.html'">Start Shopping</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='/frontend/public/shop.html'">Start Shopping</button>
       </div>`;
     return;
   }
@@ -492,9 +493,6 @@ function handleLogin() {
 
   // TODO (backend): Replace below with:
   // const res = await api.login(email, pass);
-  // if (!res.ok) { showToast(res.error, 'error'); return; }
-  // localStorage.setItem('tfToken', res.data.token);
-  // currentUser = res.data.user;
   currentUser = { email, name: email.split('@')[0], firstName: email.split('@')[0], lastName: 'User' };
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
@@ -514,9 +512,6 @@ function handleRegister() {
 
   // TODO (backend): Replace below with:
   // const res = await api.register({ firstName: first, lastName: last, email, password: pass });
-  // if (!res.ok) { showToast(res.error, 'error'); return; }
-  // localStorage.setItem('tfToken', res.data.token);
-  // currentUser = res.data.user;
   currentUser = { email, name: `${first} ${last}`, firstName: first, lastName: last };
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
@@ -525,7 +520,7 @@ function handleRegister() {
 }
 
 function handleUserNav() {
-  if (currentUser) window.location.href = 'dashboard.html';
+  if (currentUser) window.location.href = '/frontend/public/dashboard.html';
   else openModal('authModal');
 }
 
@@ -533,7 +528,7 @@ function logout() {
   currentUser = null;
   localStorage.removeItem('tfUser');
   localStorage.removeItem('tfToken');
-  window.location.href = 'index.html';
+  window.location.href = '/frontend/index.html';
 }
 
 function showForgotPassword() {
@@ -577,7 +572,7 @@ function updateDashboard() {
     const wishProducts = products.filter(p => wishlist.includes(p.id));
     wishGrid.innerHTML = wishProducts.length
       ? wishProducts.map(productCardHTML).join('')
-      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="shop.html" style="color:var(--accent);">Browse products →</a></p>`;
+      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="/frontend/public/shop.html" style="color:var(--accent);">Browse products →</a></p>`;
   }
 }
 
@@ -660,8 +655,6 @@ function submitRepairBooking() {
 
   // TODO (backend): Replace below with:
   // const res = await api.bookRepair(ticket);
-  // if (!res.ok) { showToast(res.error, 'error'); return; }
-  // ticketId = res.data.ticket.id;
   tickets.push(ticket);
   localStorage.setItem('tfTickets', JSON.stringify(tickets));
   document.getElementById('ticketIdDisplay').textContent = ticketId;
@@ -696,7 +689,6 @@ function trackRepair() {
 
   // TODO (backend): Replace below with:
   // const res = await api.trackRepair(input);
-  // const found = res.ok ? res.data.ticket : null;
   const allTickets = [...demoTickets, ...tickets];
   const found = allTickets.find(t => t.id.toUpperCase() === input);
 
@@ -806,14 +798,6 @@ function subscribeNewsletter() {
 
 
 // ============================================================
-// SEARCH
-// ============================================================
-function toggleSearch() {
-  window.location.href = 'shop.html';
-}
-
-
-// ============================================================
 // TOAST NOTIFICATIONS
 // ============================================================
 function showToast(msg, type = 'info') {
@@ -830,21 +814,18 @@ function showToast(msg, type = 'info') {
 
 // ============================================================
 // PAGE AUTO-INIT
-// Runs once components.js has already injected the navbar/footer
 // ============================================================
 (function initPage() {
   const page = document.body.dataset.page || 'home';
 
-  // Always: sync cart count & user state
   saveCart();
   if (currentUser) updateNavUser();
 
-  // Page-specific init
   if (page === 'home')      renderFeaturedProducts();
   if (page === 'shop')      { renderCategoryTabs(); renderBrandFilters(); filterProducts(); }
   if (page === 'faq')       renderFaq();
   if (page === 'dashboard') {
-    if (!currentUser) { window.location.href = 'index.html'; return; }
+    if (!currentUser) { window.location.href = '/frontend/index.html'; return; }
     updateDashboard();
     showDash('overview');
   }
