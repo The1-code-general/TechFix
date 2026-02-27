@@ -125,16 +125,16 @@ const brands = [...new Set(products.map(p => p.brand))];
 // ============================================================
 function showPage(id) {
   const pageMap = {
-    home:      '/frontend/index.html',
-    shop:      '/frontend/public/shop.html',
-    repair:    '/frontend/public/repair.html',
-    track:     '/frontend/public/track.html',
-    services:  '/frontend/public/services.html',
-    about:     '/frontend/public/about.html',
-    contact:   '/frontend/public/contact.html',
-    faq:       '/frontend/public/faq.html',
-    terms:     '/frontend/public/terms.html',
-    dashboard: '/frontend/public/dashboard.html',
+    home:      '/index.html',
+    shop:      '/public/shop.html',
+    repair:    '/public/repair.html',
+    track:     '/public/track.html',
+    services:  '/public/services.html',
+    about:     '/public/about.html',
+    contact:   '/public/contact.html',
+    faq:       '/public/faq.html',
+    terms:     '/public/terms.html',
+    dashboard: '/public/dashboard.html',
   };
   if (pageMap[id]) window.location.href = pageMap[id];
 }
@@ -354,7 +354,7 @@ function renderCart() {
       <div class="cart-empty">
         <i class="fas fa-shopping-cart"></i>
         <p>Your cart is empty</p>
-        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='/frontend/public/shop.html'">Start Shopping</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='/public/shop.html'">Start Shopping</button>
       </div>`;
     return;
   }
@@ -520,7 +520,7 @@ function handleRegister() {
 }
 
 function handleUserNav() {
-  if (currentUser) window.location.href = '/frontend/public/dashboard.html';
+  if (currentUser) window.location.href = '/public/dashboard.html';
   else openModal('authModal');
 }
 
@@ -528,7 +528,7 @@ function logout() {
   currentUser = null;
   localStorage.removeItem('tfUser');
   localStorage.removeItem('tfToken');
-  window.location.href = '/frontend/index.html';
+  window.location.href = '/index.html';
 }
 
 function showForgotPassword() {
@@ -572,7 +572,7 @@ function updateDashboard() {
     const wishProducts = products.filter(p => wishlist.includes(p.id));
     wishGrid.innerHTML = wishProducts.length
       ? wishProducts.map(productCardHTML).join('')
-      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="/frontend/public/shop.html" style="color:var(--accent);">Browse products →</a></p>`;
+      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="/public/shop.html" style="color:var(--accent);">Browse products →</a></p>`;
   }
 }
 
@@ -825,7 +825,7 @@ function showToast(msg, type = 'info') {
   if (page === 'shop')      { renderCategoryTabs(); renderBrandFilters(); filterProducts(); }
   if (page === 'faq')       renderFaq();
   if (page === 'dashboard') {
-    if (!currentUser) { window.location.href = '/frontend/index.html'; return; }
+    if (!currentUser) { window.location.href = '/index.html'; return; }
     updateDashboard();
     showDash('overview');
   }
