@@ -10,75 +10,34 @@
 // ============================================================
 
 // ===== PRODUCT DATA =====
-// TODO (backend): Replace with api.getProducts() on page load.
-const products = [
-  {
-    id: 1, name: '', category: '', brand: '',
-    price: 850000, oldPrice: 900000, rating: 4.9, reviews: 234,
-    image: '',
-    badge: '', inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 2, name: '', category: '', brand: '',
-    price: 720000, oldPrice: null, rating: 4.8, reviews: 189,
-    image: '',
-    badge: '', inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 3, name: '', category: '', brand: '',
-    price: 1250000, oldPrice: 1350000, rating: 4.9, reviews: 112,
-    image: '',
-    badge: '', inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 4, name: '', category: '', brand: '',
-    price: 120000, oldPrice: null, rating: 4.8, reviews: 308,
-    image: '',
-    badge: null, inStock: true,
-    desc: '',
-    specs: { Type: '', Battery: '', Water: '', Chip: '', Connectivity: '', Case: '' }
-  },
-  {
-    id: 5, name: '', category: '', brand: '',
-    price: 380000, oldPrice: 420000, rating: 4.7, reviews: 76,
-    image: '',
-    badge: '', inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 6, name: '', category: '', brand: '',
-    price: 480000, oldPrice: null, rating: 4.5, reviews: 93,
-    image: '',
-    badge: '', inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 7, name: '', category: '', brand: '',
-    price: 185000, oldPrice: null, rating: 4.4, reviews: 142,
-    image: '',
-    badge: null, inStock: true,
-    desc: '',
-    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
-  },
-  {
-    id: 8, name: '', category: '', brand: '',
-    price: 42000, oldPrice: null, rating: 4.6, reviews: 201,
-    image: '',
-    badge: null, inStock: true,
-    desc: '',
-    specs: { Capacity: '', Output: '', Ports: '', Weight: '', Warranty: '', Certified: '' }
-  },
-];
+// Loaded from the backend API on page init via loadProducts().
+// If the API is offline, skeleton placeholder cards are shown instead.
+// window.PRODUCTS is kept in sync so the search overlay always has data.
 
-// Expose products globally so components.js search overlay can access them
+// 8 empty skeleton objects — same shape as real products, no content.
+// The frontend renders these as grey placeholder cards while loading
+// or when the backend connection is unavailable.
+const SKELETON_PRODUCTS = Array.from({ length: 8 }, (_, i) => ({
+  id:       `skeleton-${i}`,
+  slug:     '',
+  name:     '',
+  category: '',
+  brand:    '',
+  price:    0,
+  oldPrice: null,
+  rating:   null,
+  reviews:  0,
+  image:    '',
+  images:   [],
+  badge:    null,
+  inStock:  false,
+  desc:     '',
+  specs:    {},
+  sku:      '',
+  skeleton: true, // flag so productCardHTML can render a skeleton style
+}));
+
+let products = [];
 window.PRODUCTS = products;
 
 // ===== FAQ DATA =====
@@ -116,27 +75,15 @@ let currentFaqCat = 'all';
 let selectedCategory = 'All';
 
 // ===== DERIVED DATA =====
-const categories = ['All', ...new Set(products.map(p => p.category))];
-const brands = [...new Set(products.map(p => p.brand))];
+let categories = ["All"];
+let brands = [];
 
 
 // ============================================================
 // PAGE ROUTING  (multi-page)
 // ============================================================
 function showPage(id) {
-  const pageMap = {
-    home:      '/index.html',
-    shop:      '/public/shop.html',
-    repair:    '/public/repair.html',
-    track:     '/public/track.html',
-    services:  '/public/services.html',
-    about:     '/public/about.html',
-    contact:   '/public/contact.html',
-    faq:       '/public/faq.html',
-    terms:     '/public/terms.html',
-    dashboard: '/public/dashboard.html',
-  };
-  if (pageMap[id]) window.location.href = pageMap[id];
+  if (window.PAGES && window.PAGES[id]) window.location.href = window.PAGES[id];
 }
 
 
@@ -144,14 +91,34 @@ function showPage(id) {
 // PRODUCT RENDERING
 // ============================================================
 function productCardHTML(p) {
+  // Skeleton card — shown when backend is offline or loading
+  if (p.skeleton) {
+    return `
+      <div class="product-card product-card-skeleton" style="pointer-events:none;">
+        <div class="product-img" style="background:var(--bg2);">
+          <div style="width:120px;height:120px;background:var(--border);border-radius:8px;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+        </div>
+        <div class="product-body">
+          <div style="height:12px;width:50%;background:var(--border);border-radius:4px;margin-bottom:10px;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+          <div style="height:16px;width:85%;background:var(--border);border-radius:4px;margin-bottom:8px;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+          <div style="height:12px;width:60%;background:var(--border);border-radius:4px;margin-bottom:16px;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="height:20px;width:40%;background:var(--border);border-radius:4px;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+            <div style="width:36px;height:36px;background:var(--border);border-radius:50%;animation:skeletonPulse 1.5s ease-in-out infinite;"></div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Real product card
   const inWishlist = wishlist.includes(p.id);
   return `
-    <div class="product-card" onclick="openProduct(${p.id})">
+    <div class="product-card" onclick="openProduct('${p.slug || p.id}')">
       <div class="product-img">
         <div class="product-img-bg"></div>
-        <img src="${p.image}" alt="${p.name}" style="width:120px;height:120px;object-fit:contain;position:relative;"/>
+        <img src="${p.image}" alt="${p.name}" style="width:120px;height:120px;object-fit:contain;position:relative;" onerror="this.src='https://placehold.co/120x120/0f1117/0ea5e9?text=TechFix'"/>
         ${p.badge ? `<div class="product-badge"><span class="badge badge-blue">${p.badge}</span></div>` : ''}
-        <div class="product-wishlist ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation();toggleWishlist(${p.id},this)">
+        <div class="product-wishlist ${inWishlist ? 'active' : ''}" onclick="event.stopPropagation();toggleWishlist('${p.id}',this)">
           <i class="fas fa-heart"></i>
         </div>
       </div>
@@ -159,15 +126,18 @@ function productCardHTML(p) {
         <div class="product-category">${p.category}</div>
         <div class="product-name">${p.name}</div>
         <div class="product-rating">
-          <div class="star-rating">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5 - Math.floor(p.rating))}</div>
-          <span class="product-rating-count">(${p.reviews})</span>
+          ${p.rating
+            ? `<div class="star-rating">${'★'.repeat(Math.floor(p.rating))}${'☆'.repeat(5 - Math.floor(p.rating))}</div>
+               <span class="product-rating-count">(${p.reviews})</span>`
+            : `<span style="font-size:12px;color:var(--text3);">No reviews yet</span>`
+          }
         </div>
         <div class="product-footer">
           <div class="product-price-wrap">
             <span class="price">₦${p.price.toLocaleString()}</span>
             ${p.oldPrice ? `<span class="price-old">₦${p.oldPrice.toLocaleString()}</span>` : ''}
           </div>
-          <div class="product-add" onclick="event.stopPropagation();addToCart(${p.id})">
+          <div class="product-add" onclick="event.stopPropagation();addToCart('${p.id}')">
             <i class="fas fa-plus"></i>
           </div>
         </div>
@@ -208,26 +178,34 @@ function setCategory(cat) {
 }
 
 function filterProducts() {
+  const grid  = document.getElementById('shopProductGrid');
+  const count = document.getElementById('shopCount');
+
+  // If products are still skeletons (backend loading), show them as-is
+  if (products.length > 0 && products[0].skeleton) {
+    if (grid)  grid.innerHTML = products.map(productCardHTML).join('');
+    if (count) count.textContent = 'Loading products...';
+    return;
+  }
+
   const search = (document.getElementById('shopSearch')?.value || '').toLowerCase();
   const maxPrice = parseInt(document.getElementById('priceRange')?.value || 2000000);
   const sort = document.getElementById('sortSelect')?.value || 'default';
   const checkedBrands = [...document.querySelectorAll('#brandFilters input:checked')].map(i => i.parentElement.textContent.trim());
 
   let filtered = products.filter(p => {
-    const catMatch = selectedCategory === 'All' || p.category === selectedCategory;
+    const catMatch   = selectedCategory === 'All' || p.category === selectedCategory;
     const searchMatch = p.name.toLowerCase().includes(search) || p.category.toLowerCase().includes(search) || p.brand.toLowerCase().includes(search);
-    const priceMatch = p.price <= maxPrice;
-    const brandMatch = checkedBrands.includes(p.brand);
+    const priceMatch  = p.price <= maxPrice;
+    const brandMatch  = checkedBrands.length === 0 || checkedBrands.includes(p.brand);
     return catMatch && searchMatch && priceMatch && brandMatch;
   });
 
-  if (sort === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+  if (sort === 'price-asc')  filtered.sort((a, b) => a.price - b.price);
   else if (sort === 'price-desc') filtered.sort((a, b) => b.price - a.price);
-  else if (sort === 'name') filtered.sort((a, b) => a.name.localeCompare(b.name));
-  else if (sort === 'rating') filtered.sort((a, b) => b.rating - a.rating);
+  else if (sort === 'name')   filtered.sort((a, b) => a.name.localeCompare(b.name));
+  else if (sort === 'rating') filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
 
-  const grid = document.getElementById('shopProductGrid');
-  const count = document.getElementById('shopCount');
   if (grid) grid.innerHTML = filtered.length
     ? filtered.map(productCardHTML).join('')
     : '<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">No products found matching your filters.</p>';
@@ -354,7 +332,7 @@ function renderCart() {
       <div class="cart-empty">
         <i class="fas fa-shopping-cart"></i>
         <p>Your cart is empty</p>
-        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href='/public/shop.html'">Start Shopping</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:16px;" onclick="closeCart();window.location.href=window.PAGES ? window.PAGES.shop : '/frontend/public/shop.html'">Start Shopping</button>
       </div>`;
     return;
   }
@@ -455,16 +433,36 @@ function formatCard(input) {
   input.value = v.replace(/(.{4})/g, '$1 ').trim();
 }
 
-function processPayment() {
-  // TODO (backend): Call api.createOrder() here, then redirect to Paystack
+async function processPayment() {
+  if (!cart.length) return;
   showToast('Processing payment...', 'info');
-  setTimeout(() => {
+  const first   = document.getElementById('chkFirst')?.value;
+  const last    = document.getElementById('chkLast')?.value;
+  const email   = document.getElementById('chkEmail')?.value;
+  const phone   = document.getElementById('chkPhone')?.value;
+  const address = document.getElementById('chkAddress')?.value;
+  const state   = document.getElementById('chkState')?.value;
+
+  const orderPayload = {
+    items: cart.map(i => ({ productId: i.id, quantity: i.qty })),
+    shippingAddress: { firstName: first, lastName: last, email, phone, address, state },
+  };
+
+  // createOrder already initializes Paystack and returns paymentUrl
+  const orderRes = await api.createOrder(orderPayload);
+  if (!orderRes.ok) { showToast(orderRes.error || 'Failed to place order', 'error'); return; }
+
+  if (orderRes.data.paymentUrl) {
+    window.location.href = orderRes.data.paymentUrl;
+  } else {
     cart = [];
     saveCart();
     renderCart();
     document.querySelectorAll('.checkout-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('chkStep3').classList.add('active');
-  }, 2000);
+    const step3 = document.getElementById('chkStep3');
+    if (step3) step3.classList.add('active');
+    showToast('Order placed successfully!', 'success');
+  }
 }
 
 
@@ -486,33 +484,38 @@ function switchAuthTab(tab) {
   document.getElementById('registerTabBtn').classList.toggle('active', tab === 'register');
 }
 
-function handleLogin() {
+async function handleLogin() {
   const email = document.getElementById('loginEmail').value;
-  const pass = document.getElementById('loginPassword').value;
+  const pass  = document.getElementById('loginPassword').value;
   if (!email || !pass) { showToast('Please enter email and password', 'error'); return; }
 
-  // TODO (backend): Replace below with:
-  // const res = await api.login(email, pass);
-  currentUser = { email, name: email.split('@')[0], firstName: email.split('@')[0], lastName: 'User' };
+  const res = await api.login(email, pass);
+  if (!res.ok) { showToast(res.error, 'error'); return; }
+
+  localStorage.setItem('tfToken', res.data.token);
+  currentUser = res.data.user;
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
-  showToast("Welcome back! You're signed in.", 'success');
+  showToast(`Welcome back, ${currentUser.firstName}!`, 'success');
   updateNavUser();
 }
 
-function handleRegister() {
-  const first = document.getElementById('regFirst').value;
-  const last = document.getElementById('regLast').value;
-  const email = document.getElementById('regEmail').value;
-  const pass = document.getElementById('regPassword').value;
+async function handleRegister() {
+  const first   = document.getElementById('regFirst').value;
+  const last    = document.getElementById('regLast').value;
+  const email   = document.getElementById('regEmail').value;
+  const phone   = document.getElementById('regPhone').value;
+  const pass    = document.getElementById('regPassword').value;
   const confirm = document.getElementById('regConfirm').value;
   if (!first || !last || !email || !pass) { showToast('Please fill in all fields', 'error'); return; }
   if (pass !== confirm) { showToast('Passwords do not match', 'error'); return; }
-  if (pass.length < 8) { showToast('Password must be at least 8 characters', 'error'); return; }
+  if (pass.length < 8)  { showToast('Password must be at least 8 characters', 'error'); return; }
 
-  // TODO (backend): Replace below with:
-  // const res = await api.register({ firstName: first, lastName: last, email, password: pass });
-  currentUser = { email, name: `${first} ${last}`, firstName: first, lastName: last };
+  const res = await api.register({ firstName: first, lastName: last, email, phone, password: pass });
+  if (!res.ok) { showToast(res.error, 'error'); return; }
+
+  localStorage.setItem('tfToken', res.data.token);
+  currentUser = res.data.user;
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
   closeModal('authModal');
   showToast(`Welcome, ${first}! Account created successfully.`, 'success');
@@ -520,7 +523,7 @@ function handleRegister() {
 }
 
 function handleUserNav() {
-  if (currentUser) window.location.href = '/public/dashboard.html';
+  if (currentUser) window.location.href = window.PAGES ? window.PAGES.dashboard : '/frontend/public/dashboard.html';
   else openModal('authModal');
 }
 
@@ -528,11 +531,13 @@ function logout() {
   currentUser = null;
   localStorage.removeItem('tfUser');
   localStorage.removeItem('tfToken');
-  window.location.href = '/index.html';
+  window.location.href = window.PAGES ? window.PAGES.home : '/frontend/index.html';
 }
 
-function showForgotPassword() {
-  // TODO (backend): Call api.forgotPassword(email)
+async function showForgotPassword() {
+  const email = document.getElementById('loginEmail').value;
+  if (!email) { showToast('Enter your email first', 'error'); return; }
+  await api.forgotPassword(email);
   showToast('Password reset link sent to your email!', 'success');
 }
 
@@ -548,31 +553,74 @@ function updateNavUser() {
 // ============================================================
 // USER DASHBOARD
 // ============================================================
-function updateDashboard() {
+async function updateDashboard() {
   if (!currentUser) return;
-  // TODO (backend): Fetch real orders with api.getMyOrders() and repairs with api.getMyRepairs()
-  const uname = document.getElementById('dashUsername');
+
+  const uname    = document.getElementById('dashUsername');
   const fullName = document.getElementById('dashFullName');
-  const dEmail = document.getElementById('dashEmail');
-  const avatar = document.getElementById('dashAvatar');
-  if (uname) uname.textContent = currentUser.firstName || currentUser.name;
-  if (fullName) fullName.textContent = currentUser.name;
-  if (dEmail) dEmail.textContent = currentUser.email;
-  if (avatar) avatar.textContent = (currentUser.firstName?.[0] || 'U') + (currentUser.lastName?.[0] || 'U');
+  const dEmail   = document.getElementById('dashEmail');
+  const avatar   = document.getElementById('dashAvatar');
+  if (uname)    uname.textContent    = currentUser.firstName || currentUser.name;
+  if (fullName) fullName.textContent = currentUser.name || `${currentUser.firstName} ${currentUser.lastName}`;
+  if (dEmail)   dEmail.textContent   = currentUser.email;
+  if (avatar)   avatar.textContent   = (currentUser.firstName?.[0] || 'U') + (currentUser.lastName?.[0] || 'U');
 
   const pFirst = document.getElementById('profileFirst');
-  const pLast = document.getElementById('profileLast');
+  const pLast  = document.getElementById('profileLast');
   const pEmail = document.getElementById('profileEmail');
   if (pFirst) pFirst.value = currentUser.firstName || '';
-  if (pLast) pLast.value = currentUser.lastName || '';
-  if (pEmail) pEmail.value = currentUser.email || '';
+  if (pLast)  pLast.value  = currentUser.lastName  || '';
+  if (pEmail) pEmail.value = currentUser.email     || '';
 
+  // Load real orders
+  const ordersEl = document.getElementById('ordersList');
+  if (ordersEl) {
+    const ordRes = await api.getMyOrders();
+    if (ordRes.ok && ordRes.data.length) {
+      ordersEl.innerHTML = ordRes.data.map(o => `
+        <div class="order-card" style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:700;">${o.orderRef}</div>
+              <div style="font-size:13px;color:var(--text2);">${new Date(o.createdAt).toLocaleDateString('en-NG')}</div>
+            </div>
+            <span class="badge ${o.status === 'delivered' ? 'badge-green' : o.status === 'cancelled' ? 'badge-red' : 'badge-blue'}">${o.status}</span>
+          </div>
+          <div style="font-size:14px;margin-top:8px;font-weight:600;">₦${parseFloat(o.totalAmount).toLocaleString()}</div>
+        </div>`).join('');
+    } else {
+      ordersEl.innerHTML = '<p style="color:var(--text2);text-align:center;padding:24px;">No orders yet.</p>';
+    }
+  }
+
+  // Load real repairs
+  const repairsEl = document.getElementById('repairsList');
+  if (repairsEl) {
+    const repRes = await api.getMyRepairs();
+    if (repRes.ok && repRes.data.length) {
+      repairsEl.innerHTML = repRes.data.map(r => `
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:700;">${r.ticketRef}</div>
+              <div style="font-size:13px;color:var(--text2);">${r.brand} ${r.model} — ${r.issue}</div>
+            </div>
+            <span class="badge ${r.status === 'completed' ? 'badge-green' : 'badge-orange'}">${r.status.replace('_', ' ')}</span>
+          </div>
+        </div>`).join('');
+    } else {
+      repairsEl.innerHTML = '<p style="color:var(--text2);text-align:center;padding:24px;">No repair bookings yet.</p>';
+    }
+  }
+
+  // Wishlist
+  if (products.length === 0) await loadProducts();
   const wishGrid = document.getElementById('wishlistGrid');
   if (wishGrid) {
     const wishProducts = products.filter(p => wishlist.includes(p.id));
     wishGrid.innerHTML = wishProducts.length
       ? wishProducts.map(productCardHTML).join('')
-      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="/public/shop.html" style="color:var(--accent);">Browse products →</a></p>`;
+      : `<p style="color:var(--text2);grid-column:1/-1;text-align:center;padding:40px;">Your wishlist is empty. <a href="/frontend/public/shop.html" style="color:var(--accent);">Browse products →</a></p>`;
   }
 }
 
@@ -586,14 +634,17 @@ function showDash(section) {
   });
 }
 
-function saveProfile() {
+async function saveProfile() {
   if (!currentUser) return;
-  currentUser.firstName = document.getElementById('profileFirst').value;
-  currentUser.lastName = document.getElementById('profileLast').value;
-  currentUser.name = `${currentUser.firstName} ${currentUser.lastName}`;
-  currentUser.email = document.getElementById('profileEmail').value;
+  const payload = {
+    firstName: document.getElementById('profileFirst').value,
+    lastName:  document.getElementById('profileLast').value,
+    email:     document.getElementById('profileEmail').value,
+  };
+  const res = await api.updateProfile(payload);
+  if (!res.ok) { showToast('Failed to update profile', 'error'); return; }
+  currentUser = { ...currentUser, ...payload, name: `${payload.firstName} ${payload.lastName}` };
   localStorage.setItem('tfUser', JSON.stringify(currentUser));
-  // TODO (backend): await api.updateProfile(currentUser)
   showToast('Profile updated successfully!', 'success');
   updateDashboard();
 }
@@ -618,7 +669,6 @@ function bookingNext(step) {
     const issue = document.getElementById('issueType').value;
     if (!issue) { showToast('Please select the issue type', 'error'); return; }
   }
-
   [1, 2, 3].forEach(s => {
     document.getElementById(`bookStep${s}`).style.display = s === step ? 'block' : 'none';
     const stepEl = document.getElementById(`bStep${s}`);
@@ -633,31 +683,27 @@ function bookingNext(step) {
   window.scrollTo(0, 0);
 }
 
-function submitRepairBooking() {
+async function submitRepairBooking() {
   const first = document.getElementById('repairFirstName').value;
   const email = document.getElementById('repairEmail').value;
   const phone = document.getElementById('repairPhone').value;
   if (!first || !email || !phone) { showToast('Please fill in all required fields', 'error'); return; }
 
-  const ticketId = 'TF-' + new Date().getFullYear() + String(Math.floor(Math.random() * 9000) + 1000);
-  const ticket = {
-    id: ticketId,
-    device: selectedDevice,
-    brand: document.getElementById('deviceBrand').value,
-    model: document.getElementById('deviceModel').value,
-    issue: document.getElementById('issueType').value,
-    desc: document.getElementById('issueDesc').value,
-    name: first + ' ' + document.getElementById('repairLastName').value,
-    email, phone,
-    date: new Date().toLocaleDateString(),
-    status: 'pending'
+  const payload = {
+    customerName:     first + ' ' + document.getElementById('repairLastName').value,
+    customerEmail:    email,
+    customerPhone:    phone,
+    deviceType:       selectedDevice,
+    deviceBrand:      document.getElementById('deviceBrand').value,
+    deviceModel:      document.getElementById('deviceModel').value,
+    issueType:        document.getElementById('issueType').value,
+    issueDescription: document.getElementById('issueDesc').value,
   };
 
-  // TODO (backend): Replace below with:
-  // const res = await api.bookRepair(ticket);
-  tickets.push(ticket);
-  localStorage.setItem('tfTickets', JSON.stringify(tickets));
-  document.getElementById('ticketIdDisplay').textContent = ticketId;
+  const res = await api.bookRepair(payload);
+  if (!res.ok) { showToast(res.error || 'Failed to submit booking', 'error'); return; }
+
+  document.getElementById('ticketIdDisplay').textContent = res.data.ticketRef;
   [1, 2, 3].forEach(s => document.getElementById(`bookStep${s}`).style.display = 'none');
   document.getElementById('bookingSuccess').style.display = 'block';
   showToast('Repair booking submitted!', 'success');
@@ -682,20 +728,19 @@ function handleImageUpload(input) {
 // ============================================================
 // REPAIR TRACKING
 // ============================================================
-function trackRepair() {
-  const input = document.getElementById('trackInput').value.trim().toUpperCase();
+async function trackRepair() {
+  const input  = document.getElementById('trackInput').value.trim().toUpperCase();
   const result = document.getElementById('trackResult');
-  const empty = document.getElementById('trackEmpty');
-
-  // TODO (backend): Replace below with:
-  // const res = await api.trackRepair(input);
-  const allTickets = [...demoTickets, ...tickets];
-  const found = allTickets.find(t => t.id.toUpperCase() === input);
+  const empty  = document.getElementById('trackEmpty');
+  if (!input) { showToast('Please enter a ticket ID', 'error'); return; }
 
   if (empty) empty.style.display = 'none';
+  result.style.display = 'block';
+  result.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text2);"><i class="fas fa-spinner fa-spin" style="font-size:28px;"></i></div>';
 
-  if (!found) {
-    result.style.display = 'block';
+  const res = await api.trackRepair(input);
+
+  if (!res.ok || !res.data) {
     result.innerHTML = `
       <div style="text-align:center;padding:32px;color:var(--text2);">
         <i class="fas fa-search" style="font-size:36px;color:var(--text3);display:block;margin-bottom:12px;"></i>
@@ -704,25 +749,22 @@ function trackRepair() {
     return;
   }
 
+  const found = res.data;
   const steps = ['Received', 'Diagnosed', 'Repair In Progress', 'Quality Check', 'Ready for Collection'];
-  const statuses = found.status === 'completed'
-    ? steps.map(() => 'done')
-    : found.status === 'in-progress'
-      ? ['done', 'done', 'active', '', '']
-      : ['active', '', '', '', ''];
+  const statusMap = { completed: ['done','done','done','done','done'], in_progress: ['done','done','active','',''], pending: ['active','','','',''] };
+  const statuses = statusMap[found.status] || ['active','','','',''];
+  const badgeClass = found.status === 'completed' ? 'badge-green' : found.status === 'in_progress' ? 'badge-orange' : 'badge-blue';
+  const badgeLabel = found.status === 'in_progress' ? 'In Progress' : found.status.charAt(0).toUpperCase() + found.status.slice(1);
 
-  result.style.display = 'block';
   result.innerHTML = `
     <div class="ticket-card">
       <div class="ticket-header">
         <div>
-          <div class="ticket-id">${found.id}</div>
+          <div class="ticket-id">${found.ticketRef}</div>
           <div style="font-size:13px;color:var(--text2);">${found.brand} ${found.model} — ${found.issue}</div>
           <div style="font-size:12px;color:var(--text3);">Submitted: ${found.date} | Customer: ${found.name}</div>
         </div>
-        <span class="badge ${found.status === 'completed' ? 'badge-green' : found.status === 'in-progress' ? 'badge-orange' : 'badge-blue'}">
-          ${found.status === 'in-progress' ? 'In Progress' : found.status.charAt(0).toUpperCase() + found.status.slice(1)}
-        </span>
+        <span class="badge ${badgeClass}">${badgeLabel}</span>
       </div>
       <div class="progress-track">
         <div class="progress-line"></div>
@@ -755,7 +797,7 @@ function renderFaq() {
 }
 
 function toggleFaq(i) {
-  const ans = document.getElementById(`faqAnswer${i}`);
+  const ans  = document.getElementById(`faqAnswer${i}`);
   const icon = document.getElementById(`faqIcon${i}`);
   const isOpen = ans.classList.contains('open');
   document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('open'));
@@ -774,24 +816,24 @@ function setFaqCat(el, cat) {
 // ============================================================
 // CONTACT FORM
 // ============================================================
-function submitContact() {
+async function submitContact() {
   const first = document.getElementById('cFirstName').value;
   const email = document.getElementById('cEmail').value;
-  const msg = document.getElementById('cMessage').value;
+  const msg   = document.getElementById('cMessage').value;
   if (!first || !email || !msg) { showToast('Please fill in all required fields', 'error'); return; }
-  // TODO (backend): await api.sendMessage({ firstName: first, email, message: msg, ... })
+  await api.sendMessage({ firstName: first, lastName: document.getElementById('cLastName').value, email, phone: document.getElementById('cPhone').value, subject: document.getElementById('cSubject').value, message: msg });
   showToast("Message sent! We'll get back to you shortly.", 'success');
-  ['cFirstName', 'cLastName', 'cEmail', 'cPhone', 'cMessage'].forEach(id => document.getElementById(id).value = '');
+  ['cFirstName','cLastName','cEmail','cPhone','cMessage'].forEach(id => document.getElementById(id).value = '');
 }
 
 
 // ============================================================
 // NEWSLETTER
 // ============================================================
-function subscribeNewsletter() {
+async function subscribeNewsletter() {
   const email = document.getElementById('newsletterEmail').value;
   if (!email || !email.includes('@')) { showToast('Please enter a valid email', 'error'); return; }
-  // TODO (backend): await api.subscribe(email)
+  await api.subscribe(email);
   showToast('Subscribed! Welcome to the TechFix family 🎉', 'success');
   document.getElementById('newsletterEmail').value = '';
 }
@@ -813,20 +855,74 @@ function showToast(msg, type = 'info') {
 
 
 // ============================================================
+// LOAD PRODUCTS FROM API
+// ============================================================
+async function loadProducts() {
+  // Show skeletons immediately while fetching
+  products = [...SKELETON_PRODUCTS];
+  window.PRODUCTS = products;
+  filterProducts();
+
+  const res = await api.getProducts();
+  if (res.ok && res.data.length > 0) {
+    products = res.data;
+    console.log(`✅ Loaded ${products.length} products from API`);
+  } else {
+    // Keep skeletons visible — backend offline
+    console.warn('⚠️ API unavailable — showing skeleton cards');
+  }
+  window.PRODUCTS = products;
+  categories = ['All', ...new Set(products.filter(p => !p.skeleton).map(p => p.category))];
+  brands     = [...new Set(products.filter(p => !p.skeleton).map(p => p.brand))];
+  // Re-render with real data (or keep skeletons if offline)
+  renderCategoryTabs();
+  renderBrandFilters();
+  filterProducts();
+}
+
+async function loadFeaturedProducts() {
+  // Show skeletons immediately while fetching
+  products = [...SKELETON_PRODUCTS];
+  window.PRODUCTS = products;
+  renderFeaturedProducts();
+
+  const res = await api.getFeaturedProducts();
+  if (res.ok && res.data.length > 0) {
+    products = res.data;
+    console.log(`✅ Loaded ${products.length} featured products from API`);
+    window.PRODUCTS = products;
+    renderFeaturedProducts();
+  } else {
+    console.warn('⚠️ API unavailable — showing skeleton cards');
+  }
+}
+
+
+// ============================================================
 // PAGE AUTO-INIT
 // ============================================================
-(function initPage() {
+(async function initPage() {
   const page = document.body.dataset.page || 'home';
 
   saveCart();
   if (currentUser) updateNavUser();
 
-  if (page === 'home')      renderFeaturedProducts();
-  if (page === 'shop')      { renderCategoryTabs(); renderBrandFilters(); filterProducts(); }
-  if (page === 'faq')       renderFaq();
+  if (page === 'home') {
+    await loadFeaturedProducts();
+  }
+
+  if (page === 'shop') {
+    await loadProducts();
+    renderCategoryTabs();
+    renderBrandFilters();
+    filterProducts();
+  }
+
+  if (page === 'faq') renderFaq();
+
   if (page === 'dashboard') {
-    if (!currentUser) { window.location.href = '/index.html'; return; }
-    updateDashboard();
+    if (!currentUser) { window.location.href = window.PAGES ? window.PAGES.home : '/frontend/index.html'; return; }
+    await updateDashboard();
     showDash('overview');
   }
 })();

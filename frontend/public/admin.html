@@ -954,52 +954,45 @@
        ADMIN JAVASCRIPT
        ===================================================== -->
   <script>
-  // =====================================================
-  // AUTH GUARD
-  // =====================================================
-  const adminSession = JSON.parse(localStorage.getItem('tfAdmin') || 'null');
-  if (!adminSession) window.location.href = 'admin-login.html';
+  const API_BASE = 'http://localhost:5000/api';
 
-  // Set admin name in sidebar
-  document.getElementById('adminName').textContent = adminSession?.username || 'Admin';
-  document.getElementById('adminAvatar').textContent = (adminSession?.username?.[0] || 'A').toUpperCase();
-
-  function adminLogout() {
-    localStorage.removeItem('tfAdmin');
-    window.location.href = 'admin-login.html';
+  // =====================================================
+  // API HELPER
+  // =====================================================
+  async function adminRequest(method, endpoint, body = null) {
+    const token = localStorage.getItem('tfToken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const res = await fetch(`${API_BASE}${endpoint}`, {
+        method, headers, body: body ? JSON.stringify(body) : null,
+      });
+      const data = await res.json();
+      return { ok: res.ok, status: res.status, data };
+    } catch (err) {
+      return { ok: false, data: { message: 'Network error — is the backend running?' } };
+    }
   }
 
 
   // =====================================================
-  // PRODUCT DATA  (mirrors main.js — replace with api.getProducts())
+  // AUTH GUARD
   // =====================================================
-  let adminProducts = JSON.parse(localStorage.getItem('adminProducts') || 'null') || [
-    { id:1, name:'iPhone 15 Pro', category:'Smartphones', brand:'Apple', price:850000, oldPrice:900000, rating:4.9, reviews:234, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=iPhone+15+Pro', badge:'Hot', inStock:true, desc:'6.1" Super Retina XDR display, A17 Pro chip.', specs:'Display: 6.1" OLED\nRAM: 8GB\nStorage: 256GB' },
-    { id:2, name:'Samsung Galaxy S24', category:'Smartphones', brand:'Samsung', price:720000, oldPrice:null, rating:4.8, reviews:189, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+S24', badge:'New', inStock:true, desc:'6.2" Dynamic AMOLED 2X, Snapdragon 8 Gen 3.', specs:'Display: 6.2" AMOLED\nRAM: 8GB\nStorage: 256GB' },
-    { id:3, name:'MacBook Air M3', category:'Laptops', brand:'Apple', price:1250000, oldPrice:1350000, rating:4.9, reviews:112, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=MacBook+Air+M3', badge:'Sale', inStock:true, desc:'13.6" Liquid Retina display, M3 chip.', specs:'Display: 13.6" Retina\nRAM: 8GB\nStorage: 256GB SSD' },
-    { id:4, name:'AirPods Pro 2nd Gen', category:'Accessories', brand:'Apple', price:120000, oldPrice:null, rating:4.8, reviews:308, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=AirPods+Pro', badge:null, inStock:true, desc:'Active Noise Cancellation, MagSafe charging.', specs:'Type: In-Ear ANC\nBattery: 6hrs+30hrs' },
-    { id:5, name:'Samsung Galaxy Tab S9', category:'Tablets', brand:'Samsung', price:380000, oldPrice:420000, rating:4.7, reviews:76, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+Tab+S9', badge:'Sale', inStock:true, desc:'11" Dynamic AMOLED, S-Pen included.', specs:'Display: 11" AMOLED\nRAM: 8GB\nStorage: 256GB' },
-    { id:6, name:'HP Pavilion 15', category:'Laptops', brand:'HP', price:480000, oldPrice:null, rating:4.5, reviews:93, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=HP+Pavilion+15', badge:'New', inStock:true, desc:'Intel Core i5 13th Gen, 512GB SSD.', specs:'Display: 15.6" FHD\nRAM: 8GB\nStorage: 512GB SSD' },
-    { id:7, name:'Tecno Camon 30', category:'Smartphones', brand:'Tecno', price:185000, oldPrice:null, rating:4.4, reviews:142, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=Tecno+Camon+30', badge:null, inStock:true, desc:'6.78" AMOLED, 50MP camera.', specs:'Display: 6.78" AMOLED\nRAM: 8GB\nStorage: 256GB' },
-    { id:8, name:'Anker PowerCore 26800', category:'Accessories', brand:'Anker', price:42000, oldPrice:null, rating:4.6, reviews:201, image:'https://placehold.co/400x400/0f1117/0ea5e9?text=Anker+PowerCore', badge:null, inStock:true, desc:'26800mAh, 65W PD power bank.', specs:'Capacity: 26800mAh\nOutput: 65W PD' },
-  ];
+  const tfUser = JSON.parse(localStorage.getItem('tfUser') || 'null');
+  const tfToken = localStorage.getItem('tfToken');
+  if (!tfToken || !tfUser || tfUser.role !== 'admin') {
+    window.location.href = 'admin-login.html';
+  }
 
-  let adminOrders = [
-    { id:'#TF-ORD-001', customer:'John Doe', email:'john@example.com', items:'iPhone 15 Pro x1', total:'₦850,000', date:'Jan 12, 2026', status:'Delivered' },
-    { id:'#TF-ORD-002', customer:'Jane Smith', email:'jane@example.com', items:'AirPods Pro x1', total:'₦120,000', date:'Feb 3, 2026', status:'Shipped' },
-    { id:'#TF-ORD-003', customer:'Emeka Obi', email:'emeka@example.com', items:'USB-C Charger x2', total:'₦25,000', date:'Feb 10, 2026', status:'Processing' },
-  ];
+  document.getElementById('adminName').textContent   = tfUser?.firstName || 'Admin';
+  document.getElementById('adminAvatar').textContent = (tfUser?.firstName?.[0] || 'A').toUpperCase();
 
-  let adminRepairs = JSON.parse(localStorage.getItem('adminRepairs') || 'null') || [
-    { id:'TF-20260001', name:'John Doe', email:'john@example.com', device:'Smartphone', brand:'Samsung', model:'Galaxy S23', issue:'Screen Repair', date:'Feb 14, 2026', status:'in-progress' },
-    { id:'TF-20260002', name:'Ada Smith', email:'ada@example.com', device:'Laptop', brand:'HP', model:'Pavilion 15', issue:'Battery Replacement', date:'Feb 12, 2026', status:'completed' },
-  ];
+  function adminLogout() {
+    localStorage.removeItem('tfToken');
+    localStorage.removeItem('tfUser');
+    window.location.href = 'admin-login.html';
+  }
 
-  let adminUsers = JSON.parse(localStorage.getItem('tfUser') || 'null')
-    ? [JSON.parse(localStorage.getItem('tfUser'))]
-    : [];
-
-  let editingProductId = null;
 
   // =====================================================
   // PANEL NAVIGATION
@@ -1022,203 +1015,212 @@
     });
     const [title, sub] = panelNames[id] || [id, id];
     document.getElementById('topbarTitle').textContent = title;
-    document.getElementById('topbarSub').textContent = sub;
-    if (id === 'products') renderProductsTable();
-    if (id === 'orders')   renderOrdersTable();
-    if (id === 'repairs')  renderRepairsTable();
-    if (id === 'users')    renderUsersTable();
+    document.getElementById('topbarSub').textContent   = sub;
+    if (id === 'products') loadProductsTable();
+    if (id === 'orders')   loadOrdersTable();
+    if (id === 'repairs')  loadRepairsTable();
+    if (id === 'users')    loadUsersTable();
   }
 
 
   // =====================================================
-  // PRODUCTS TABLE
+  // PRODUCTS
   // =====================================================
-  function renderProductsTable(data) {
-    const list = data || adminProducts;
+  let editingProductId = null;
+
+  async function loadProductsTable() {
     const tbody = document.getElementById('productsTable');
-    document.getElementById('productCount').textContent = list.length + ' products';
-    document.getElementById('badgeProducts').textContent = list.length;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text2);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+    const res = await adminRequest('GET', '/products?limit=100');
+    if (!res.ok) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${res.data.message}</p></div></td></tr>`;
+      return;
+    }
+    const list = res.data?.data?.products || [];
+    document.getElementById('productCount').textContent   = list.length + ' products';
+    document.getElementById('badgeProducts').textContent  = list.length;
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-box-open"></i><p>No products found</p></div></td></tr>`;
       return;
     }
+    const images = p => Array.isArray(p.images) ? (p.images[0] || '') : '';
     tbody.innerHTML = list.map(p => `
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:12px;">
             <div class="img-preview" style="width:44px;height:44px;flex-shrink:0;">
-              <img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;padding:4px;"/>
+              <img src="${images(p) || 'https://placehold.co/44x44/0d1117/0ea5e9?text=+'}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;padding:4px;" onerror="this.src='https://placehold.co/44x44/0d1117/0ea5e9?text=+'"/>
             </div>
             <div>
               <div style="font-weight:600;font-size:13px;">${p.name}</div>
-              <div class="td-muted">${p.brand}</div>
+              <div class="td-muted">${p.brand || ''}</div>
             </div>
           </div>
         </td>
-        <td><span class="badge badge-purple">${p.category}</span></td>
+        <td><span class="badge badge-purple">${p.category?.name || ''}</span></td>
+        <td><span style="font-weight:700;">₦${parseFloat(p.price).toLocaleString()}</span></td>
+        <td><span class="badge ${p.stock > 0 ? 'badge-green' : 'badge-red'}">${p.stock > 0 ? 'In Stock ('+p.stock+')' : 'Out of Stock'}</span></td>
+        <td><span class="badge ${p.isFeatured ? 'badge-blue' : ''}">${p.isFeatured ? 'Featured' : '—'}</span></td>
         <td>
-          <span style="font-weight:700;">₦${p.price.toLocaleString()}</span>
-          ${p.oldPrice ? `<br/><span class="td-muted" style="text-decoration:line-through;">₦${p.oldPrice.toLocaleString()}</span>` : ''}
-        </td>
-        <td><span class="badge ${p.inStock ? 'badge-green' : 'badge-red'}">${p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
-        <td><span style="font-family:var(--mono);font-size:13px;">⭐ ${p.rating}</span><span class="td-muted"> (${p.reviews})</span></td>
-        <td>
-          <div class="row-actions">
-            <button class="btn btn-sm btn-outline" onclick="editProduct(${p.id})"><i class="fas fa-pen"></i></button>
-            <button class="btn btn-sm btn-danger" onclick="confirmDelete(${p.id})"><i class="fas fa-trash"></i></button>
-          </div>
+          <button class="btn btn-sm btn-outline" onclick="editProduct('${p.id}','${p.name.replace(/'/g,"\'")}',${parseFloat(p.price)},'${p.brand||''}','${p.category?.name||''}')">
+            <i class="fas fa-pen"></i>
+          </button>
+          <button class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);" onclick="confirmDelete('${p.id}','${p.name.replace(/'/g,"\'")}')">
+            <i class="fas fa-trash"></i>
+          </button>
         </td>
       </tr>`).join('');
   }
 
-  function openProductModal(id) {
-    editingProductId = id || null;
-    document.getElementById('productModalTitle').textContent = id ? 'Edit Product' : 'Add Product';
-    if (id) {
-      const p = adminProducts.find(x => x.id === id);
-      document.getElementById('pName').value     = p.name;
-      document.getElementById('pBrand').value    = p.brand;
-      document.getElementById('pCategory').value = p.category;
-      document.getElementById('pBadge').value    = p.badge || '';
-      document.getElementById('pPrice').value    = p.price;
-      document.getElementById('pOldPrice').value = p.oldPrice || '';
-      document.getElementById('pImage').value    = p.image;
-      document.getElementById('pDesc').value     = p.desc;
-      document.getElementById('pSpecs').value    = p.specs || '';
-      document.getElementById('pInStock').value  = String(p.inStock);
-      document.getElementById('imgPreviewImg').src = p.image;
-    } else {
-      ['pName','pBrand','pBadge','pPrice','pOldPrice','pImage','pDesc','pSpecs'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('pCategory').value = 'Smartphones';
-      document.getElementById('pInStock').value  = 'true';
-      document.getElementById('imgPreviewImg').src = 'https://placehold.co/80x80/0d1117/0ea5e9?text=IMG';
-    }
-    document.getElementById('productModal').classList.add('open');
+  function editProduct(id, name, price, brand, category) {
+    editingProductId = id;
+    document.getElementById('pName').value     = name;
+    document.getElementById('pPrice').value    = price;
+    document.getElementById('pBrand').value    = brand;
+    document.getElementById('pCategory').value = category;
+    document.getElementById('productModalTitle').textContent = 'Edit Product';
+    openModal('productModal');
   }
 
-  function editProduct(id) { openProductModal(id); }
+  function openAddProduct() {
+    editingProductId = null;
+    ['pName','pBrand','pCategory','pPrice','pOldPrice','pImage','pDesc','pSpecs'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('productModalTitle').textContent = 'Add New Product';
+    openModal('productModal');
+  }
 
   function previewProductImg(url) {
     if (url) document.getElementById('imgPreviewImg').src = url;
   }
 
-  function saveProduct() {
+  async function saveProduct() {
     const name  = document.getElementById('pName').value.trim();
     const price = parseInt(document.getElementById('pPrice').value);
     if (!name || !price) { toast('Name and price are required.', 'error'); return; }
 
-    const product = {
-      id:       editingProductId || Date.now(),
-      name,
-      brand:    document.getElementById('pBrand').value,
-      category: document.getElementById('pCategory').value,
-      badge:    document.getElementById('pBadge').value || null,
-      price,
-      oldPrice: parseInt(document.getElementById('pOldPrice').value) || null,
-      image:    document.getElementById('pImage').value || 'https://placehold.co/400x400/0f1117/0ea5e9?text=' + encodeURIComponent(name),
-      desc:     document.getElementById('pDesc').value,
-      specs:    document.getElementById('pSpecs').value,
-      inStock:  document.getElementById('pInStock').value === 'true',
-      rating:   4.5, reviews: 0,
+    const payload = {
+      name, price,
+      brand:       document.getElementById('pBrand').value,
+      description: document.getElementById('pDesc').value,
+      stock:       parseInt(document.getElementById('pStock')?.value || 0),
+      isFeatured:  document.getElementById('pBadge')?.value === 'Featured',
+      sku:         document.getElementById('pSku')?.value || '',
     };
 
-    // TODO (backend): await api.saveProduct(product)
+    let res;
     if (editingProductId) {
-      const idx = adminProducts.findIndex(p => p.id === editingProductId);
-      adminProducts[idx] = product;
-      toast('Product updated successfully!', 'success');
+      res = await adminRequest('PUT', `/admin/products/${editingProductId}`, payload);
     } else {
-      adminProducts.push(product);
-      toast('Product added successfully!', 'success');
+      res = await adminRequest('POST', '/admin/products', payload);
     }
-    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+
+    if (!res.ok) { toast(res.data?.message || 'Failed to save product', 'error'); return; }
+    toast(editingProductId ? 'Product updated!' : 'Product added!', 'success');
     closeModal('productModal');
-    renderProductsTable();
+    loadProductsTable();
   }
 
-  function confirmDelete(id) {
-    const p = adminProducts.find(x => x.id === id);
-    document.getElementById('confirmTitle').textContent = 'Delete "' + p.name + '"?';
-    document.getElementById('confirmMsg').textContent = 'This will remove the product from the store. Cannot be undone.';
-    document.getElementById('confirmAction').onclick = () => deleteProduct(id);
-    document.getElementById('confirmModal').classList.add('open');
+  function confirmDelete(id, name) {
+    document.getElementById('confirmTitle').textContent  = `Delete "${name}"?`;
+    document.getElementById('confirmMsg').textContent    = 'This will remove the product from the store. Cannot be undone.';
+    document.getElementById('confirmAction').onclick     = () => deleteProduct(id);
+    openModal('confirmModal');
   }
 
-  function deleteProduct(id) {
-    // TODO (backend): await api.deleteProduct(id)
-    adminProducts = adminProducts.filter(p => p.id !== id);
-    localStorage.setItem('adminProducts', JSON.stringify(adminProducts));
+  async function deleteProduct(id) {
+    const res = await adminRequest('DELETE', `/admin/products/${id}`);
+    if (!res.ok) { toast(res.data?.message || 'Delete failed', 'error'); return; }
     closeModal('confirmModal');
-    renderProductsTable();
     toast('Product deleted.', 'info');
+    loadProductsTable();
   }
 
 
   // =====================================================
-  // ORDERS TABLE
+  // ORDERS
   // =====================================================
   const statusBadgeClass = {
-    'Delivered':'badge-green','Shipped':'badge-blue',
-    'Processing':'badge-orange','Cancelled':'badge-red'
+    delivered:'badge-green', confirmed:'badge-blue', shipped:'badge-blue',
+    processing:'badge-orange', cancelled:'badge-red', pending:'badge-orange', refunded:'badge-red'
   };
 
-  function renderOrdersTable(data) {
-    const list = data || adminOrders;
+  async function loadOrdersTable() {
     const tbody = document.getElementById('ordersTable');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+    const res = await adminRequest('GET', '/admin/orders?limit=50');
+    if (!res.ok) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${res.data.message}</p></div></td></tr>`;
+      return;
+    }
+    const list = res.data?.data?.orders || [];
     document.getElementById('orderCount').textContent  = list.length + ' orders';
     document.getElementById('badgeOrders').textContent = list.length;
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-shopping-bag"></i><p>No orders found</p></div></td></tr>`;
       return;
     }
-    tbody.innerHTML = list.map(o => `
+    tbody.innerHTML = list.map(o => {
+      const addr = o.shippingAddress || {};
+      const customerName = addr.firstName ? `${addr.firstName} ${addr.lastName}` : o.customer?.firstName || '—';
+      const customerEmail = addr.email || o.customer?.email || '—';
+      const itemsText = o.items?.length ? `${o.items.length} item${o.items.length > 1 ? 's' : ''}` : '—';
+      const statusLower = (o.status || '').toLowerCase();
+      return `
       <tr>
-        <td class="td-mono">${o.id}</td>
-        <td>${o.customer}<br/><span class="td-muted">${o.email}</span></td>
-        <td>${o.items}</td>
-        <td style="font-weight:700;">${o.total}</td>
-        <td class="td-muted">${o.date}</td>
-        <td><span class="badge ${statusBadgeClass[o.status] || 'badge-blue'}">${o.status}</span></td>
+        <td class="td-mono">${o.orderRef}</td>
+        <td>${customerName}<br/><span class="td-muted">${customerEmail}</span></td>
+        <td>${itemsText}</td>
+        <td style="font-weight:700;">₦${parseFloat(o.totalAmount).toLocaleString()}</td>
+        <td class="td-muted">${new Date(o.createdAt).toLocaleDateString('en-NG')}</td>
+        <td><span class="badge ${statusBadgeClass[statusLower] || 'badge-blue'}">${o.status}</span></td>
         <td>
           <select class="status-select" onchange="updateOrderStatus('${o.id}', this.value)">
-            <option ${o.status==='Processing'?'selected':''}>Processing</option>
-            <option ${o.status==='Shipped'?'selected':''}>Shipped</option>
-            <option ${o.status==='Delivered'?'selected':''}>Delivered</option>
-            <option ${o.status==='Cancelled'?'selected':''}>Cancelled</option>
+            <option value="processing"  ${statusLower==='processing' ?'selected':''}>Processing</option>
+            <option value="shipped"     ${statusLower==='shipped'    ?'selected':''}>Shipped</option>
+            <option value="delivered"   ${statusLower==='delivered'  ?'selected':''}>Delivered</option>
+            <option value="cancelled"   ${statusLower==='cancelled'  ?'selected':''}>Cancelled</option>
           </select>
         </td>
-      </tr>`).join('');
+      </tr>`;
+    }).join('');
   }
 
-  function updateOrderStatus(id, status) {
-    const order = adminOrders.find(o => o.id === id);
-    if (order) {
-      order.status = status;
-      // TODO (backend): await api.updateOrder(id, { status })
-      toast(`Order ${id} updated to "${status}"`, 'success');
-      renderOrdersTable();
-    }
+  async function updateOrderStatus(id, status) {
+    const res = await adminRequest('PATCH', `/admin/orders/${id}/status`, { status });
+    if (!res.ok) { toast(res.data?.message || 'Update failed', 'error'); return; }
+    toast(`Order updated to "${status}"`, 'success');
+    loadOrdersTable();
   }
 
   function filterOrdersByStatus(status) {
-    const filtered = status ? adminOrders.filter(o => o.status === status) : adminOrders;
-    renderOrdersTable(filtered);
+    loadOrdersTable();
   }
 
 
   // =====================================================
-  // REPAIRS TABLE
+  // REPAIRS
   // =====================================================
-  const repairBadge = { 'pending':'badge-blue','in-progress':'badge-orange','completed':'badge-green' };
-  const repairLabel = { 'pending':'Pending','in-progress':'In Progress','completed':'Completed' };
+  const repairBadge = {
+    pending:'badge-blue', in_progress:'badge-orange', awaiting_parts:'badge-orange',
+    completed:'badge-green', cancelled:'badge-red'
+  };
+  const repairLabel = {
+    pending:'Pending', in_progress:'In Progress', awaiting_parts:'Awaiting Parts',
+    completed:'Completed', cancelled:'Cancelled'
+  };
 
-  function renderRepairsTable(data) {
-    const allRepairs = [
-      ...adminRepairs,
-      ...JSON.parse(localStorage.getItem('tfTickets') || '[]')
-    ];
-    const list = data || allRepairs;
+  async function loadRepairsTable() {
     const tbody = document.getElementById('repairsTable');
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text2);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+    const res = await adminRequest('GET', '/admin/repairs?limit=50');
+    if (!res.ok) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${res.data.message}</p></div></td></tr>`;
+      return;
+    }
+    const list = res.data?.data?.bookings || [];
     document.getElementById('repairCount').textContent  = list.length + ' bookings';
     document.getElementById('badgeRepairs').textContent = list.length;
     if (!list.length) {
@@ -1227,51 +1229,49 @@
     }
     tbody.innerHTML = list.map(r => `
       <tr>
-        <td class="td-mono">${r.id}</td>
-        <td>${r.name}<br/><span class="td-muted">${r.email || ''}</span></td>
-        <td>${r.brand} ${r.model}<br/><span class="td-muted">${r.device}</span></td>
-        <td>${r.issue}</td>
-        <td class="td-muted">${r.date}</td>
+        <td class="td-mono">${r.ticketRef}</td>
+        <td>${r.customerName}<br/><span class="td-muted">${r.customerEmail}</span></td>
+        <td>${r.deviceBrand || ''} ${r.deviceModel || ''}<br/><span class="td-muted">${r.deviceType}</span></td>
+        <td>${r.issueType}</td>
+        <td class="td-muted">${new Date(r.createdAt).toLocaleDateString('en-NG')}</td>
         <td><span class="badge ${repairBadge[r.status] || 'badge-blue'}">${repairLabel[r.status] || r.status}</span></td>
         <td>
           <select class="status-select" onchange="updateRepairStatus('${r.id}', this.value)">
-            <option value="pending"     ${r.status==='pending'?'selected':''}>Pending</option>
-            <option value="in-progress" ${r.status==='in-progress'?'selected':''}>In Progress</option>
-            <option value="completed"   ${r.status==='completed'?'selected':''}>Completed</option>
+            <option value="pending"        ${r.status==='pending'        ?'selected':''}>Pending</option>
+            <option value="in_progress"    ${r.status==='in_progress'    ?'selected':''}>In Progress</option>
+            <option value="awaiting_parts" ${r.status==='awaiting_parts' ?'selected':''}>Awaiting Parts</option>
+            <option value="completed"      ${r.status==='completed'      ?'selected':''}>Completed</option>
+            <option value="cancelled"      ${r.status==='cancelled'      ?'selected':''}>Cancelled</option>
           </select>
         </td>
       </tr>`).join('');
   }
 
-  function updateRepairStatus(id, status) {
-    // Check both adminRepairs and tfTickets
-    let found = adminRepairs.find(r => r.id === id);
-    if (found) { found.status = status; localStorage.setItem('adminRepairs', JSON.stringify(adminRepairs)); }
-    const tickets = JSON.parse(localStorage.getItem('tfTickets') || '[]');
-    const t = tickets.find(r => r.id === id);
-    if (t) { t.status = status; localStorage.setItem('tfTickets', JSON.stringify(tickets)); }
-    // TODO (backend): await api.updateRepair(id, { status })
-    toast(`Repair ${id} updated to "${repairLabel[status]}"`, 'success');
-    renderRepairsTable();
+  async function updateRepairStatus(id, status) {
+    const res = await adminRequest('PATCH', `/admin/repairs/${id}`, { status });
+    if (!res.ok) { toast(res.data?.message || 'Update failed', 'error'); return; }
+    toast(`Repair updated to "${repairLabel[status] || status}"`, 'success');
+    loadRepairsTable();
   }
 
   function filterRepairsByStatus(status) {
-    const allRepairs = [...adminRepairs, ...JSON.parse(localStorage.getItem('tfTickets') || '[]')];
-    const filtered = status ? allRepairs.filter(r => r.status === status) : allRepairs;
-    renderRepairsTable(filtered);
+    loadRepairsTable();
   }
 
 
   // =====================================================
-  // USERS TABLE
+  // USERS
   // =====================================================
-  function renderUsersTable() {
-    // Pull from localStorage — TODO (backend): await api.getUsers()
-    const storedUser = JSON.parse(localStorage.getItem('tfUser') || 'null');
-    const list = storedUser ? [storedUser] : [];
+  async function loadUsersTable() {
     const tbody = document.getElementById('usersTable');
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text2);"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+    const res = await adminRequest('GET', '/admin/users?limit=50');
+    if (!res.ok) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>${res.data.message}</p></div></td></tr>`;
+      return;
+    }
+    const list = res.data?.data?.users || [];
     document.getElementById('userCount').textContent = list.length + ' user' + (list.length !== 1 ? 's' : '');
-    document.getElementById('badgeRepairs').textContent = document.getElementById('badgeRepairs').textContent;
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-users"></i><p>No registered users yet</p></div></td></tr>`;
       return;
@@ -1280,23 +1280,46 @@
       <tr>
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">
-              ${(u.firstName?.[0] || 'U')}${(u.lastName?.[0] || '')}
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;">
+              ${(u.firstName?.[0]||'U')}${(u.lastName?.[0]||'')}
             </div>
-            <div>
-              <div style="font-weight:600;">${u.name || u.firstName || 'Unknown'}</div>
-            </div>
+            <div style="font-weight:600;">${u.firstName} ${u.lastName}</div>
           </div>
         </td>
         <td class="td-muted">${u.email}</td>
-        <td class="td-muted">Recently</td>
-        <td class="td-mono">—</td>
+        <td class="td-muted">${new Date(u.createdAt).toLocaleDateString('en-NG')}</td>
+        <td><span class="badge ${u.role === 'admin' ? 'badge-purple' : 'badge-blue'}">${u.role}</span></td>
         <td>
-          <button class="btn btn-sm btn-outline" onclick="toast('User detail view coming when backend is connected.','info')">
-            <i class="fas fa-eye"></i> View
+          <button class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);"
+            onclick="blockUser('${u.id}','${u.firstName}',${u.isBlocked})">
+            <i class="fas fa-${u.isBlocked ? 'unlock' : 'ban'}"></i> ${u.isBlocked ? 'Unblock' : 'Block'}
           </button>
         </td>
       </tr>`).join('');
+  }
+
+  async function blockUser(id, name, isBlocked) {
+    const res = await adminRequest('PATCH', `/admin/users/${id}/block`);
+    if (!res.ok) { toast(res.data?.message || 'Action failed', 'error'); return; }
+    toast(`${name} ${isBlocked ? 'unblocked' : 'blocked'}.`, 'success');
+    loadUsersTable();
+  }
+
+
+  // =====================================================
+  // DASHBOARD STATS
+  // =====================================================
+  async function loadDashboardStats() {
+    const res = await adminRequest('GET', '/admin/dashboard');
+    if (!res.ok) return;
+    const s = res.data?.data?.stats || {};
+    const el = id => document.getElementById(id);
+    if (el('statOrders'))   el('statOrders').textContent   = s.totalOrders   || 0;
+    if (el('statRepairs'))  el('statRepairs').textContent  = s.totalRepairs  || 0;
+    if (el('statUsers'))    el('statUsers').textContent    = s.totalUsers    || 0;
+    if (el('statProducts')) el('statProducts').textContent = s.totalProducts || 0;
+    if (el('badgeOrders'))  el('badgeOrders').textContent  = s.pendingOrders || 0;
+    if (el('badgeRepairs')) el('badgeRepairs').textContent = s.pendingRepairs || 0;
   }
 
 
@@ -1304,17 +1327,20 @@
   // SETTINGS
   // =====================================================
   function saveSetting(section) {
-    // TODO (backend): await api.saveSettings({ section, data })
     toast(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved!`, 'success');
   }
 
-  function changeAdminPassword() {
+  async function changeAdminPassword() {
     const np = document.getElementById('newAdminPass').value;
     const cp = document.getElementById('confirmAdminPass').value;
-    if (!np || !cp) { toast('Please fill in both fields.', 'error'); return; }
-    if (np !== cp)  { toast('Passwords do not match.', 'error'); return; }
+    if (!np || !cp)    { toast('Please fill in both fields.', 'error');    return; }
+    if (np !== cp)     { toast('Passwords do not match.', 'error');        return; }
     if (np.length < 8) { toast('Password must be at least 8 characters.', 'error'); return; }
-    // TODO (backend): await api.changeAdminPassword(np)
+    const res = await adminRequest('PATCH', '/auth/change-password', {
+      currentPassword: document.getElementById('currentAdminPass')?.value || '',
+      newPassword: np,
+    });
+    if (!res.ok) { toast(res.data?.message || 'Failed to update password', 'error'); return; }
     toast('Admin password updated!', 'success');
     document.getElementById('newAdminPass').value = '';
     document.getElementById('confirmAdminPass').value = '';
@@ -1326,8 +1352,7 @@
   // =====================================================
   function filterTable(tableId, query) {
     const q = query.toLowerCase();
-    const rows = document.querySelectorAll(`#${tableId} tr`);
-    rows.forEach(row => {
+    document.querySelectorAll(`#${tableId} tr`).forEach(row => {
       row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
   }
@@ -1361,15 +1386,9 @@
   // =====================================================
   // INIT
   // =====================================================
-  (function init() {
-    renderProductsTable();
-    // Update overview stat counters
-    document.getElementById('statOrders').textContent = adminOrders.length;
-    document.getElementById('statRepairs').textContent =
-      adminRepairs.length + JSON.parse(localStorage.getItem('tfTickets') || '[]').length;
-    document.getElementById('statUsers').textContent =
-      localStorage.getItem('tfUser') ? 1 : 0;
+  (async function init() {
+    await loadDashboardStats();
+    loadProductsTable();
   })();
   </script>
 </body>
-</html>

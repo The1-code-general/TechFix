@@ -1,222 +1,273 @@
 // ============================================================
 // TECHFIX — api.js
-// Backend Integration Layer
-//
-// HOW TO USE:
-//   1. Set API_BASE to your backend's root URL
-//   2. Each function maps to one backend endpoint
-//   3. Replace the mock implementations in main.js
-//      by calling the corresponding api.xxx() function
-//
-// AUTH HEADER:
-//   All protected routes automatically attach the JWT token
-//   stored in localStorage under 'tfToken'.
+// All backend API calls live here.
+// Response shapes match the exact backend controllers.
+// API_BASE is set by config.js — load config.js BEFORE this file.
 // ============================================================
 
-const API_BASE = 'https://api.yourdomain.com/api'; // TODO: update to production URL
+const API_BASE = window.API_BASE || 'http://localhost:5000/api';
 
-// ---- Helpers ----
-
-function authHeader() {
-  const token = localStorage.getItem('tfToken');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function request(path, options = {}) {
+// ─── Helper ───────────────────────────────────────────────────────────────────
+async function request(method, endpoint, body = null, auth = false) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (auth) {
+    const token = localStorage.getItem('tfToken');
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...authHeader(),
-        ...(options.headers || {}),
-      },
-      ...options,
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : null,
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
-    return { ok: true, data };
+    return { ok: res.ok, status: res.status, data };
   } catch (err) {
-    return { ok: false, error: err.message };
+    console.warn(`API [${method} ${endpoint}] failed:`, err.message);
+    return { ok: false, status: 0, data: { message: 'Network error — is the backend running?' } };
   }
 }
 
-// ============================================================
-// AUTH  →  /api/auth/*
+// ─── Product Mapper ───────────────────────────────────────────────────────────
+// Maps backend Product shape → frontend card shape
+function mapProduct(p) {
+  const images = Array.isArray(p.images) ? p.images : [];
+  return {
+    id:        p.id,
+    slug:      p.slug,
+    name:      p.name,
+    category:  p.category?.name || 'Uncategorised',
+    brand:     p.brand || '',
+    price:     parseFloat(p.price) || 0,
+    oldPrice:  p.oldPrice ? parseFloat(p.oldPrice) : null,
+    rating:    p.rating   || null,
+    reviews:   p.reviewCount || 0,
+    image:     images[0] || `https://placehold.co/400x400/0f1117/0ea5e9?text=${encodeURIComponent(p.name)}`,
+    images:    images,
+    badge:     p.isFeatured ? 'Featured' : null,
+    inStock:   (p.stock || 0) > 0,
+    desc:      p.description || '',
+    specs:     p.specifications || {},
+    sku:       p.sku || '',
+  };
+}
+
+// ─── Repair Mapper ────────────────────────────────────────────────────────────
+// Maps backend RepairBooking shape → frontend tracking shape
+function mapRepair(r) {
+  return {
+    id:            r.id        || '',
+    ticketRef:     r.ticketRef || '',
+    name:          r.customerName  || '',
+    email:         r.customerEmail || '',
+    phone:         r.customerPhone || '',
+    device:        r.deviceType  || '',
+    brand:         r.deviceBrand || '',
+    model:         r.deviceModel || '',
+    issue:         r.issueType   || '',
+    desc:          r.issueDescription || '',
+    status:        r.status      || 'pending',
+    notes:         r.technicianNotes  || '',
+    estimatedCost: r.estimatedCost ? parseFloat(r.estimatedCost) : null,
+    finalCost:     r.finalCost    ? parseFloat(r.finalCost)    : null,
+    estimatedCompletion: r.estimatedCompletion || null,
+    completedAt:   r.completedAt || null,
+    date:          r.createdAt
+      ? new Date(r.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+      : '',
+  };
+}
+
+
 // ============================================================
 const api = {
 
-  // POST /api/auth/login
-  // Body: { email, password }
-  // Returns: { token, user: { id, firstName, lastName, email, phone } }
-  login: (email, password) =>
-    request('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password }),
-    }),
-
-  // POST /api/auth/register
-  // Body: { firstName, lastName, email, phone, password }
-  // Returns: { token, user }
-  register: (data) =>
-    request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  // POST /api/auth/forgot-password
-  // Body: { email }
-  forgotPassword: (email) =>
-    request('/auth/forgot-password', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }),
-
-  // GET /api/auth/me  [protected]
-  // Returns: { user }
-  getMe: () => request('/auth/me'),
-
-
-  // ============================================================
-  // PRODUCTS  →  /api/products/*
-  // ============================================================
-
-  // GET /api/products?category=&brand=&minPrice=&maxPrice=&sort=&search=
-  // Returns: { products: [...] }
-  getProducts: (filters = {}) => {
-    const params = new URLSearchParams(filters).toString();
-    return request(`/products${params ? '?' + params : ''}`);
+  // ─── PRODUCTS ───────────────────────────────────────────────
+  // GET /api/products
+  // Response: { success, data: { products: [...], pagination: {...} } }
+  async getProducts(params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const res   = await request('GET', `/products${query ? '?' + query : ''}`);
+    if (!res.ok) return { ok: false, data: [] };
+    const raw = res.data?.data?.products || [];
+    return { ok: true, data: raw.map(mapProduct) };
   },
 
-  // GET /api/products/:id
-  // Returns: { product }
-  getProduct: (id) => request(`/products/${id}`),
+  // GET /api/products/featured
+  // Response: { success, data: { products: [...] } }
+  async getFeaturedProducts() {
+    const res = await request('GET', '/products/featured');
+    if (!res.ok) return { ok: false, data: [] };
+    const raw = res.data?.data?.products || [];
+    return { ok: true, data: raw.map(mapProduct) };
+  },
+
+  // GET /api/products/:slug
+  // Response: { success, data: { product: {...} } }
+  async getProduct(slug) {
+    const res = await request('GET', `/products/${slug}`);
+    if (!res.ok) return { ok: false, data: null };
+    const raw = res.data?.data?.product;
+    return { ok: true, data: raw ? mapProduct(raw) : null };
+  },
 
 
-  // ============================================================
-  // ORDERS  →  /api/orders/*
-  // ============================================================
+  // ─── AUTH ────────────────────────────────────────────────────
+  // POST /api/auth/login
+  // Response: { success, data: { user, token } }
+  async login(email, password) {
+    const res = await request('POST', '/auth/login', { email, password });
+    if (!res.ok) return { ok: false, error: res.data?.message || 'Login failed' };
+    return {
+      ok:   true,
+      data: {
+        user:  res.data.data.user,
+        token: res.data.data.token,
+      },
+    };
+  },
 
-  // POST /api/orders  [protected]
-  // Body: { items: [{productId, qty}], delivery: { firstName, lastName, email, phone, address, state }, paymentMethod }
-  // Returns: { order, paystackAuthorizationUrl }
-  createOrder: (orderData) =>
-    request('/orders', {
-      method: 'POST',
-      body: JSON.stringify(orderData),
-    }),
+  // POST /api/auth/register
+  // Response: { success, message, data: { user, token } }
+  async register(payload) {
+    const res = await request('POST', '/auth/register', payload);
+    if (!res.ok) return { ok: false, error: res.data?.message || 'Registration failed' };
+    return {
+      ok:   true,
+      data: {
+        user:  res.data.data.user,
+        token: res.data.data.token,
+      },
+    };
+  },
 
-  // GET /api/orders  [protected]
-  // Returns: { orders: [...] }
-  getMyOrders: () => request('/orders'),
+  // GET /api/auth/me
+  // Response: { success, data: { user } }
+  async getMe() {
+    const res = await request('GET', '/auth/me', null, true);
+    if (!res.ok) return { ok: false, data: null };
+    return { ok: true, data: res.data?.data?.user || null };
+  },
 
-  // GET /api/orders/:id  [protected]
-  // Returns: { order }
-  getOrder: (id) => request(`/orders/${id}`),
+  // PATCH /api/auth/update-profile
+  // Response: { success, message, data: { user } }
+  async updateProfile(payload) {
+    const res = await request('PATCH', '/auth/update-profile', payload, true);
+    if (!res.ok) return { ok: false, error: res.data?.message || 'Update failed' };
+    return { ok: true, data: res.data?.data?.user };
+  },
 
-  // POST /api/orders/verify-payment  (Paystack webhook/callback)
-  // Body: { reference }
-  verifyPayment: (reference) =>
-    request('/orders/verify-payment', {
-      method: 'POST',
-      body: JSON.stringify({ reference }),
-    }),
+  // PATCH /api/auth/change-password
+  async changePassword(currentPassword, newPassword) {
+    const res = await request('PATCH', '/auth/change-password', { currentPassword, newPassword }, true);
+    return { ok: res.ok, error: res.data?.message };
+  },
+
+  // POST /api/auth/forgot-password
+  async forgotPassword(email) {
+    const res = await request('POST', '/auth/forgot-password', { email });
+    return { ok: res.ok };
+  },
 
 
-  // ============================================================
-  // REPAIRS  →  /api/repairs/*
-  // ============================================================
+  // ─── CATEGORIES ──────────────────────────────────────────────
+  // GET /api/categories
+  // Response: { success, data: { categories: [...] } }
+  async getCategories() {
+    const res = await request('GET', '/categories');
+    if (!res.ok) return { ok: false, data: [] };
+    return { ok: true, data: res.data?.data?.categories || [] };
+  },
 
+
+  // ─── ORDERS ──────────────────────────────────────────────────
+  // POST /api/orders
+  // Response: { success, data: { order, paymentUrl, reference } }
+  async createOrder(payload) {
+    const res = await request('POST', '/orders', payload, true);
+    if (!res.ok) return { ok: false, error: res.data?.message || 'Failed to place order' };
+    return {
+      ok:   true,
+      data: {
+        order:      res.data.data.order,
+        paymentUrl: res.data.data.paymentUrl,
+        reference:  res.data.data.reference,
+      },
+    };
+  },
+
+  // GET /api/orders/my
+  // Response: { success, data: { orders: [...] } }
+  async getMyOrders() {
+    const res = await request('GET', '/orders/my', null, true);
+    if (!res.ok) return { ok: false, data: [] };
+    return { ok: true, data: res.data?.data?.orders || [] };
+  },
+
+  // GET /api/orders/:id
+  // Response: { success, data: { order } }
+  async getOrder(id) {
+    const res = await request('GET', `/orders/${id}`, null, true);
+    if (!res.ok) return { ok: false, data: null };
+    return { ok: true, data: res.data?.data?.order || null };
+  },
+
+
+  // ─── REPAIRS ─────────────────────────────────────────────────
   // POST /api/repairs
-  // Body: { device, brand, model, issueType, issueDesc, firstName, lastName, email, phone, method, address }
-  // Returns: { ticket: { id, status, ... } }
-  bookRepair: (repairData) =>
-    request('/repairs', {
-      method: 'POST',
-      body: JSON.stringify(repairData),
-    }),
+  // Response: { success, message, data: { booking } }
+  async bookRepair(payload) {
+    const res = await request('POST', '/repairs', payload);
+    if (!res.ok) return { ok: false, error: res.data?.message || 'Failed to submit repair' };
+    const booking = res.data?.data?.booking;
+    return { ok: true, data: mapRepair(booking) };
+  },
 
-  // GET /api/repairs/:ticketId  (public — no auth required)
-  // Returns: { ticket }
-  trackRepair: (ticketId) => request(`/repairs/${ticketId}`),
+  // GET /api/repairs/track/:ticketRef (public)
+  // Response: { success, data: { ticketRef, status, deviceType, issueType, ... } }
+  async trackRepair(ticketRef) {
+    const res = await request('GET', `/repairs/track/${ticketRef}`);
+    if (!res.ok) return { ok: false, data: null };
+    const raw = res.data?.data;
+    if (!raw) return { ok: false, data: null };
+    // Track endpoint returns a limited subset for privacy
+    return {
+      ok: true,
+      data: {
+        ticketRef:           raw.ticketRef,
+        status:              raw.status,
+        device:              raw.deviceType,
+        issue:               raw.issueType,
+        notes:               raw.technicianNotes || '',
+        estimatedCost:       raw.estimatedCost ? parseFloat(raw.estimatedCost) : null,
+        estimatedCompletion: raw.estimatedCompletion || null,
+        completedAt:         raw.completedAt || null,
+        date: raw.createdAt
+          ? new Date(raw.createdAt).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
+          : '',
+      },
+    };
+  },
 
-  // GET /api/repairs  [protected]
-  // Returns: { repairs: [...] }
-  getMyRepairs: () => request('/repairs/mine'),
-
-
-  // ============================================================
-  // USER  →  /api/users/*
-  // ============================================================
-
-  // PUT /api/users/profile  [protected]
-  // Body: { firstName, lastName, email, phone, address }
-  updateProfile: (profileData) =>
-    request('/users/profile', {
-      method: 'PUT',
-      body: JSON.stringify(profileData),
-    }),
-
-  // PUT /api/users/password  [protected]
-  // Body: { currentPassword, newPassword }
-  changePassword: (data) =>
-    request('/users/password', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
-
-  // GET /api/users/wishlist  [protected]
-  // Returns: { wishlist: [productId, ...] }
-  getWishlist: () => request('/users/wishlist'),
-
-  // POST /api/users/wishlist/:productId  [protected]
-  addToWishlist: (productId) =>
-    request(`/users/wishlist/${productId}`, { method: 'POST' }),
-
-  // DELETE /api/users/wishlist/:productId  [protected]
-  removeFromWishlist: (productId) =>
-    request(`/users/wishlist/${productId}`, { method: 'DELETE' }),
+  // GET /api/repairs/my
+  // Response: { success, data: { bookings: [...] } }
+  async getMyRepairs() {
+    const res = await request('GET', '/repairs/my', null, true);
+    if (!res.ok) return { ok: false, data: [] };
+    const raw = res.data?.data?.bookings || [];
+    return { ok: true, data: raw.map(mapRepair) };
+  },
 
 
-  // ============================================================
-  // CONTACT & NEWSLETTER  →  /api/contact, /api/newsletter
-  // ============================================================
+  // ─── PAYMENTS ────────────────────────────────────────────────
+  // GET /api/payments/verify/:reference
+  // Response: { success, data: { ...paystackData } }
+  async verifyPayment(reference) {
+    const res = await request('GET', `/payments/verify/${reference}`, null, true);
+    if (!res.ok) return { ok: false, error: res.data?.message };
+    return { ok: true, data: res.data?.data };
+  },
 
-  // POST /api/contact
-  // Body: { firstName, lastName, email, phone, subject, message }
-  sendMessage: (data) =>
-    request('/contact', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
-
-  // POST /api/newsletter
-  // Body: { email }
-  subscribe: (email) =>
-    request('/newsletter', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }),
 };
 
-// ============================================================
-// IMAGE UPLOAD HELPER
-// ============================================================
-// Use this for repair booking image uploads when backend is ready.
-// POST /api/uploads   (multipart/form-data)
-// Returns: { urls: ['https://...', ...] }
-async function uploadImages(files) {
-  const formData = new FormData();
-  files.forEach(f => formData.append('images', f));
-  try {
-    const res = await fetch(`${API_BASE}/uploads`, {
-      method: 'POST',
-      headers: authHeader(),
-      body: formData,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
-    return { ok: true, data };
-  } catch (err) {
-    return { ok: false, error: err.message };
-  }
-}
+window.api = api;
