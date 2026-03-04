@@ -6,6 +6,22 @@
 
 (function () {
 
+  // ─── Skeleton pulse animation (injected once into <head>) ─────────────────
+  if (!document.getElementById('tf-skeleton-style')) {
+    const style = document.createElement('style');
+    style.id = 'tf-skeleton-style';
+    style.textContent = `
+      @keyframes skeletonPulse {
+        0%   { opacity: 1; }
+        50%  { opacity: 0.4; }
+        100% { opacity: 1; }
+      }
+      .product-card-skeleton { cursor: default !important; }
+      .product-card-skeleton:hover { transform: none !important; box-shadow: none !important; }
+    `;
+    document.head.appendChild(style);
+  }
+
   // ---- Helpers ----
   function mount(id, html) {
     const el = document.getElementById(id);
@@ -20,23 +36,22 @@
     return currentPage() === page ? 'active' : '';
   }
 
-  // Absolute paths — work from both /index.html
-  // and /public/*.html
-  const PAGES = {
-    home:      '/index.html',
-    shop:      '/public/shop.html',
-    repair:    '/public/repair.html',
-    services:  '/public/services.html',
-    about:     '/public/about.html',
-    contact:   '/public/contact.html',
-    track:     '/public/track.html',
-    faq:       '/public/faq.html',
-    terms:     '/public/terms.html',
-    dashboard: '/public/dashboard.html',
-  };
-
+  // Pages are defined in config.js which auto-detects the correct base path.
+  // Falls back to /frontend/ paths if config.js hasn't loaded yet.
   function go(page) {
-    window.location.href = PAGES[page] || '/index.html';
+    const pages = window.PAGES || {
+      home:      '/frontend/index.html',
+      shop:      '/frontend/public/shop.html',
+      repair:    '/frontend/public/repair.html',
+      services:  '/frontend/public/services.html',
+      about:     '/frontend/public/about.html',
+      contact:   '/frontend/public/contact.html',
+      track:     '/frontend/public/track.html',
+      faq:       '/frontend/public/faq.html',
+      terms:     '/frontend/public/terms.html',
+      dashboard: '/frontend/public/dashboard.html',
+    };
+    window.location.href = pages[page] || '/frontend/index.html';
   }
 
   // Expose go() globally so main.js and inline HTML can call it
@@ -307,7 +322,7 @@
                 {icon:'📱',name:'Smartphones'},{icon:'💻',name:'Laptops'},
                 {icon:'🎧',name:'Accessories'},{icon:'📟',name:'Tablets'}
               ].map(c =>
-                `<div onclick="window.location.href='/public/shop.html'"
+                `<div onclick="window.location.href=window.PAGES?window.PAGES.shop:'/frontend/public/shop.html'"
                   style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;cursor:pointer;transition:all .15s;"
                   onmouseover="this.style.borderColor='var(--accent)'"
                   onmouseout="this.style.borderColor='var(--border)'">
@@ -326,7 +341,7 @@
         <!-- Footer -->
         <div style="padding:14px 24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
           <span style="font-size:12px;color:var(--text3);">Press <kbd style="background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-size:11px;">ESC</kbd> to close</span>
-          <a id="searchViewAll" href="/public/shop.html" style="font-size:13px;color:var(--accent);font-weight:600;display:none;">View all results in Shop →</a>
+          <a id="searchViewAll" href="/frontend/public/shop.html" style="font-size:13px;color:var(--accent);font-weight:600;display:none;">View all results in Shop →</a>
         </div>
 
       </div>
@@ -375,7 +390,7 @@
 
     defaultEl.style.display = 'none';
     viewAll.style.display = 'block';
-    viewAll.href = '/public/shop.html';
+    viewAll.href = '/frontend/public/shop.html';
 
     const products = window.PRODUCTS || [];
     const q = query.toLowerCase();
@@ -421,7 +436,7 @@
 
   window.runSearchEnter = function(query) {
     if (query.trim()) {
-      window.location.href = '/public/shop.html';
+      window.location.href = window.PAGES ? window.PAGES.shop : '/frontend/public/shop.html';
     }
   };
 
