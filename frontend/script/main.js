@@ -13,68 +13,68 @@
 // TODO (backend): Replace with api.getProducts() on page load.
 const products = [
   {
-    id: 1, name: 'iPhone 15 Pro', category: 'Smartphones', brand: 'Apple',
+    id: 1, name: '', category: '', brand: '',
     price: 850000, oldPrice: 900000, rating: 4.9, reviews: 234,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=iPhone+15+Pro',
-    badge: 'Hot', inStock: true,
-    desc: '6.1" Super Retina XDR display, A17 Pro chip, 48MP camera system, USB-C connectivity.',
-    specs: { Display: '6.1" OLED', Processor: 'A17 Pro', RAM: '8GB', Storage: '256GB', Battery: '3274mAh', OS: 'iOS 17' }
+    image: '',
+    badge: '', inStock: true,
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 2, name: 'Samsung Galaxy S24', category: 'Smartphones', brand: 'Samsung',
+    id: 2, name: '', category: '', brand: '',
     price: 720000, oldPrice: null, rating: 4.8, reviews: 189,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+S24',
-    badge: 'New', inStock: true,
-    desc: '6.2" Dynamic AMOLED 2X, Snapdragon 8 Gen 3, 50MP camera, 25W fast charging.',
-    specs: { Display: '6.2" AMOLED', Processor: 'Snapdragon 8 Gen 3', RAM: '8GB', Storage: '256GB', Battery: '4000mAh', OS: 'Android 14' }
+    image: '',
+    badge: '', inStock: true,
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 3, name: 'MacBook Air M3', category: 'Laptops', brand: 'Apple',
+    id: 3, name: '', category: '', brand: '',
     price: 1250000, oldPrice: 1350000, rating: 4.9, reviews: 112,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=MacBook+Air+M3',
-    badge: 'Sale', inStock: true,
-    desc: '13.6" Liquid Retina display, M3 chip, up to 18hr battery, fanless design.',
-    specs: { Display: '13.6" Liquid Retina', Processor: 'Apple M3', RAM: '8GB', Storage: '256GB SSD', Battery: '18 hours', OS: 'macOS Sonoma' }
+    image: '',
+    badge: '', inStock: true,
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 4, name: 'AirPods Pro 2nd Gen', category: 'Accessories', brand: 'Apple',
+    id: 4, name: '', category: '', brand: '',
     price: 120000, oldPrice: null, rating: 4.8, reviews: 308,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=AirPods+Pro',
+    image: '',
     badge: null, inStock: true,
-    desc: 'Active Noise Cancellation, Transparency mode, Adaptive Audio, MagSafe charging.',
-    specs: { Type: 'In-Ear ANC', Battery: '6hrs + 30hrs case', Water: 'IPX4', Chip: 'H2', Connectivity: 'Bluetooth 5.3', Case: 'MagSafe' }
+    desc: '',
+    specs: { Type: '', Battery: '', Water: '', Chip: '', Connectivity: '', Case: '' }
   },
   {
-    id: 5, name: 'Samsung Galaxy Tab S9', category: 'Tablets', brand: 'Samsung',
+    id: 5, name: '', category: '', brand: '',
     price: 380000, oldPrice: 420000, rating: 4.7, reviews: 76,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Galaxy+Tab+S9',
-    badge: 'Sale', inStock: true,
-    desc: '11" Dynamic AMOLED, Snapdragon 8 Gen 2, 256GB storage, S-Pen included.',
-    specs: { Display: '11" AMOLED', Processor: 'Snapdragon 8 Gen 2', RAM: '8GB', Storage: '256GB', Battery: '8400mAh', OS: 'Android 13' }
+    image: '',
+    badge: '', inStock: true,
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 6, name: 'HP Pavilion 15', category: 'Laptops', brand: 'HP',
+    id: 6, name: '', category: '', brand: '',
     price: 480000, oldPrice: null, rating: 4.5, reviews: 93,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=HP+Pavilion+15',
-    badge: 'New', inStock: true,
-    desc: 'Intel Core i5 13th Gen, 8GB RAM, 512GB SSD, Full HD IPS display.',
-    specs: { Display: '15.6" FHD IPS', Processor: 'Intel i5-1335U', RAM: '8GB DDR4', Storage: '512GB SSD', Battery: '41Wh', OS: 'Windows 11' }
+    image: '',
+    badge: '', inStock: true,
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 7, name: 'Tecno Camon 30', category: 'Smartphones', brand: 'Tecno',
+    id: 7, name: '', category: '', brand: '',
     price: 185000, oldPrice: null, rating: 4.4, reviews: 142,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Tecno+Camon+30',
+    image: '',
     badge: null, inStock: true,
-    desc: '6.78" AMOLED, 50MP OIS camera, Dimensity 8050, 5000mAh battery, 33W charging.',
-    specs: { Display: '6.78" AMOLED', Processor: 'Dimensity 8050', RAM: '8GB', Storage: '256GB', Battery: '5000mAh', OS: 'Android 14' }
+    desc: '',
+    specs: { Display: '', Processor: '', RAM: '', Storage: '', Battery: '', OS: '' }
   },
   {
-    id: 8, name: 'Anker PowerCore 26800', category: 'Accessories', brand: 'Anker',
+    id: 8, name: '', category: '', brand: '',
     price: 42000, oldPrice: null, rating: 4.6, reviews: 201,
-    image: 'https://placehold.co/400x400/0f1117/0ea5e9?text=Anker+PowerCore',
+    image: '',
     badge: null, inStock: true,
-    desc: '26800mAh power bank, 65W PD, charges up to 3 devices simultaneously.',
-    specs: { Capacity: '26800mAh', Output: '65W PD', Ports: '2x USB-A, 1x USB-C', Weight: '620g', Warranty: '18 months', Certified: 'FCC, CE' }
+    desc: '',
+    specs: { Capacity: '', Output: '', Ports: '', Weight: '', Warranty: '', Certified: '' }
   },
 ];
 
